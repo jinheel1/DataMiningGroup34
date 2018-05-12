@@ -1,0 +1,32 @@
+---
+title: "DataMining_Group34_Final"
+author: "Jinhee Lee"
+date: "5/12/2018"
+output: 
+  html_document:
+    toc:  true
+    toc_float:  true
+    code_folding:  show
+---
+
+# Part 1. Unsupervised Learning
+
+---
+
+## 1a.
+
+
+
+
+---
+
+## 1b.
+
+
+
+---
+
+# Part 2. Supervised Learning
+
+---
+
