@@ -6,12 +6,14 @@
 
 # Problem 2 (85 points)
 
+X <- read.table(file="trainX.txt",header=TRUE)
+y <- read.table(file="trainy.txt",header=TRUE)
+
 ## Part 1. Unsupervised Learning
 
 ### 1a.
 
-X <- read.table(file="trainX.txt",header=TRUE)
-y <- read.table(file="trainy.txt",header=TRUE)
+
 
 ### 1b.
 
