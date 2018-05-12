@@ -1,7 +1,7 @@
 ---
-title: "DataMining_Group34_Final"
-author: "Jinhee Lee"
-date: "5/12/2018"
+title: "36-462 Data Mining Final - Group 34"
+author: "Maria Rodriguez (mar1); Anirudh Narain (anarain); Kayla Oliva (keoliva); Jinhee Lee (jinheel1)"
+date: "5/13/2018"
 output: 
   html_document:
     toc:  true
@@ -9,24 +9,28 @@ output:
     code_folding:  show
 ---
 
-# Part 1. Unsupervised Learning
+# Problem 2 (85 points)
 
 ---
 
-## 1a.
+## Part 1. Unsupervised Learning
+
+---
+
+### 1a.
 
 
 
 
 ---
 
-## 1b.
+### 1b.
 
 
 
 ---
 
-# Part 2. Supervised Learning
+## Part 2. Supervised Learning
 
 ---
 
