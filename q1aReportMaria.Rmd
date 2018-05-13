@@ -123,8 +123,6 @@ pc.65 = pc.n$x[,1:65]
 #### Hierarchical Clustering
 One of the methods we used for clustering was hierarchical clustering. We tried four different types of linkage, and observed that the complete and average linkage had the lowest hamming clustering errors. The classification errors are presented below, including before and after applying normalized PCA to the training data. Although, single linkage suffers from chaining, complete linkage suffers from crowding, and average linkage strikes a balance so that clusters are simulataneously relatively compact and far away, the clustering results of complete and average linkage ended up doing better than single and centroid linkages' results. Since, average linkage results in more ideal clusters, we will choose the result of average linkage hierarchical clustering, to compare against the rest of the unsupervised learning models. 
 ```{r}
-#load("TrainData.RData")
-#trainY.df = data.frame(trainY)
 set.seed(1)
 # install.packages("clues", dependencies = T)
 # install.packages("combinat", dependencies = T)
@@ -161,7 +159,7 @@ clusterings <- function(withPCA, res, makePlot=FALSE) {
   if (withPCA) {
     resRow <- 2
     pr.out <- prcomp(X, center=TRUE, scale=TRUE)
-    dist.matrix <- dist(pr.out$x[,1:2])
+    dist.matrix <- dist(pr.out$x[,1:65])
     title <- "After"
   } else {
     resRow <- 1
@@ -184,9 +182,14 @@ clusterings <- function(withPCA, res, makePlot=FALSE) {
 res <- clusterings(TRUE, clusterings(FALSE, matrix(NA, nrow=2, ncol=4)))
 colnames(res) <- methods
 rownames(res) <- c("Before Applying PCA", "After Applying PCA")
-pander(res)
+pander(res) #Hamming Cluster Errors
 ```
 
+```{r}
+# c(bottom, left, top, right) 
+par(mfrow=c(2, 2), mar=c(2,5,2,0.5))
+res <- clusterings(TRUE, clusterings(FALSE, matrix(NA, nrow=2, ncol=4), TRUE), TRUE)
+```
 
 
 
