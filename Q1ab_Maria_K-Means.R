@@ -149,3 +149,12 @@ best_cluster(kmeans.results$cluster, y$label + 1)
 
 ## Part 2. Supervised Learning
 
+There's a cross validaton package that automatically does CV for a set of clustering methods. Applying this on K-Means and K-Medoids we get back their connectivity, Dunn, and Silhutte validation measures. We want to minimize connectivity while maximizing Dunn and the Silhoutte scores. These are alternative validation measures to CH-Index. [clValid R Documentation](https://cran.r-project.org/web/packages/clValid/vignettes/clValid.pdf)
+```{r}
+install.packages("clValid")
+library(clValid)
+
+cv.obj = clValid(pc.65, nClust = 2:8, clMethods = c("kmeans", "pam","hierarchical"),
+validation = "internal", verbose = T)
+summary(cv.obj)
+```

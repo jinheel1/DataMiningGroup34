@@ -191,6 +191,66 @@ par(mfrow=c(2, 2), mar=c(2,5,2,0.5))
 res <- clusterings(TRUE, clusterings(FALSE, matrix(NA, nrow=2, ncol=4), TRUE), TRUE)
 ```
 
+#### K-Means
+
+An unsupervised learning method we apply is K-Means to determine cluster groupings in our data. But before we can determine the final cluster's it's helpful to determine the best K. 
+```{r}
+library(cluster)
+library(factoextra)
+set.seed(1)
+#It seems K = 2 is the best
+fviz_nbclust(X, kmeans, method = "silhouette") + theme_classic()
+fviz_nbclust(pc.65, kmeans, method = "silhouette") + theme_classic()
+
+kmeans.results = kmeans(X, centers = 2, nstart = 25, iter.max = 20, algorithm = "Lloyd")
+kmeans.results.pca = kmeans(pc.65, centers = 2, nstart = 25, iter.max = 20, algorithm = "Lloyd")
+
+best_cluster <- function(cut1, cut2) {
+  per <- permn(1:2)
+  hamming <- numeric(length(per))
+  for (i in 1:length(per)) {
+    ts <- table(cut1, cut2)
+    ts <- ts[per[[i]],]
+    diag(ts) <- 0
+    hamming[i] <- sum(ts)
+  }
+  return(c(min(hamming), which.min(hamming), min(hamming)/length(cut2)))
+}
+num_patients = nrow(X)
+err_calc = best_cluster(kmeans.results$cluster, y$label)
+err_calc[3] #Error
+err_calc.pca = best_cluster(kmeans.results.pca$cluster, y$label)
+err_calc.pca[3] #Error
+```
+
+
+```{r}
+library(factoextra)
+library(cluster)
+# Calculating optimal number of clusters
+fviz_nbclust(X, pam, method = "silhouette") + theme_classic()
+fviz_nbclust(pc.65, pam, method = "silhouette") + theme_classic()
+```
+
+```{r}
+pam.res = pam(X, k = 2)
+pam.res.64.2 = pam(pc.65, k = 2)
+pam.res.64.4 = pam(pc.65, k = 4)
+
+pam.res$clustering
+pam.res.64.2$clustering
+pam.res.64.4$clustering
+# Error proportion: the number of incorrect classification divided the number of rows
+kmed_error = best_cluster(pam.res$clustering, y$label)[3]
+cat("Error:", kmed_error * 100, "%")
+
+kmed_error.64.2 = best_cluster(pam.res.64.2$clustering, y$label)[3]
+cat("Error:", kmed_error.64.2 * 100, "%")
+
+kmed_error.64.4 = best_cluster(pam.res.64.4$clustering, y$label)[3]
+cat("Error:", kmed_error.64.4 * 100, "%")
+
+```
 
 
 #XXXLater on when exploring LDA check the normality assumption of the data
