@@ -1,6 +1,6 @@
 ---
 title: "Final Project Report from Group 34"
-author: "36-462 -- Maria Rodriguez"
+author: "Maria Rodriguez (mar1); Anirudh Narain (anarain); Kayla Oliva (keoliva); Jinhee Lee (jinheel1)"
 output: 
   pdf_document: 
     highlight: tango
@@ -16,7 +16,9 @@ knitr::opts_chunk$set(echo=TRUE, cache=T, autodep=F, cache.comments=FALSE,
                       warning=F, message=F, tidy=T, strip.white = TRUE)
 ```
 
-Q1a: Is there any interesting structure present in the data? 
+# Unsupervised Learning
+
+## Q1a: Is there any interesting structure present in the data? 
 
 The data frame given to us contained 133 patients with 248 gene encodings. Given this high dimensionality it is extremely difficult to determine if there is any structure in the data. To solve this we explore several different dimension reduction methods to determine what sort of structure exists in the data. 
 
@@ -79,7 +81,7 @@ library(ggplot2)
 library(factoextra)
 ```
 
-The screeplot of PC object shows an elbow around 10 but that isn't enough variance explained. To determine the amount of PC's to retain I need to see the increasing gains in variance explained by each new PC. Using this it seems that the elbow of cumulative variance explained is passed around 60. So going down to 65 PC's seems to be the reasonable given it covers 95% of variance.
+The screeplot of PC object shows an elbow around 10 but that isn't enough variance explained. To determine the amount of PC's to retain I need to see the increasing gains in variance explained by each new PC. Using this it seems that the elbow of cumulative variance explained is passed around 60. So going down to 65 PC's seems to be the reasonable given it covers 95% of variance. The proportion of variance explained by the principal component directions is a way of quanitfying how much structure of the data is being captured and if we can capture 95% of the data from 65 PC's that's much better than 100% of the data being captured from 248 variables.
 ```{r}
 fviz_eig(pc.n, ncp = 80)
 vars = apply(pc.n$x, 2, var)
@@ -116,18 +118,76 @@ So settling on 65PC's we apply our clustering methods to see which works best on
 pc.65 = pc.n$x[,1:65]
 ```
 
+## Clustering Methods Used
 
+#### Hierarchical Clustering
+One of the methods we used for clustering was hierarchical clustering. We tried four different types of linkage, and observed that the complete and average linkage had the lowest hamming clustering errors. The classification errors are presented below, including before and after applying normalized PCA to the training data. Although, single linkage suffers from chaining, complete linkage suffers from crowding, and average linkage strikes a balance so that clusters are simulataneously relatively compact and far away, the clustering results of complete and average linkage ended up doing better than single and centroid linkages' results. Since, average linkage results in more ideal clusters, we will choose the result of average linkage hierarchical clustering, to compare against the rest of the unsupervised learning models. 
 ```{r}
-hc.single <- hclust(dist(trainX), method = "single")
-hc.complete <- hclust(dist(trainX), method = "complete")
+#load("TrainData.RData")
+#trainY.df = data.frame(trainY)
+set.seed(1)
+# install.packages("clues", dependencies = T)
+# install.packages("combinat", dependencies = T)
+# install.packages("dendextend", dependencies = T)
+# install.packages("pander", dependencies = T)
+library(clues)
+library(combinat)
+library(dendextend)
+library(pander)
 
-plot(hc.single, main = "Single linkage", xlab = "", sub = "", cex = 0.5)
-plot(hc.complete, main = "Complete linkage", xlab = "", sub = "", cex = 0.5)
+compute.clustering.error <- function(true.labels, predictions) {
+  perms <- permn(c(0, 1))
+  min.error <- Inf
+  for (p in 1:length(perms)) {
+    pi <- perms[[p]]
+    error <- 0
+    for (i in 1:length(true.labels)) {
+      l <- true.labels[i]
+      l.pred <- predictions[i]
+      if (l != pi[l.pred]) {
+        error <- error + 1
+      }
+    }
+    if (error < min.error) {
+      min.error <- error
+    }
+  }
+  return(min.error)
+}
 
+methods <- c("Single", "Complete", "Average", "Centroid")
+n <- nrow(X)
+clusterings <- function(withPCA, res, makePlot=FALSE) {
+  if (withPCA) {
+    resRow <- 2
+    pr.out <- prcomp(X, center=TRUE, scale=TRUE)
+    dist.matrix <- dist(pr.out$x[,1:2])
+    title <- "After"
+  } else {
+    resRow <- 1
+    dist.matrix <- dist(X)
+    title <- "Before"
+  }
+  for (i in 1:4) {
+    method <- methods[i]
+    hc.out <- hclust(dist.matrix, method=tolower(method))
+    hc.clustering <- cutree(hc.out, 2)
+    res[resRow, i] <- compute.clustering.error(y$label, (hc.clustering)) / n
+    if (makePlot && (method == "Single" || method == "Complete")) {
+      dend <- hc.out %>% as.dendrogram %>% set("labels_cex", .35) %>% color_branches(k = 2)
+      plot(dend, main=paste(method, " Linkage", "\n(", title, " Applying PCA)", sep=""))
+    }
+  }
+  res
+}
+
+res <- clusterings(TRUE, clusterings(FALSE, matrix(NA, nrow=2, ncol=4)))
+colnames(res) <- methods
+rownames(res) <- c("Before Applying PCA", "After Applying PCA")
+pander(res)
 ```
 
 
-The proportion of variance explained by the principal component directions is a way of quanitfying how much structure of the data is being captured.
 
 
 #XXXLater on when exploring LDA check the normality assumption of the data
