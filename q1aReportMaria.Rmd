@@ -113,13 +113,17 @@ fviz_pca_ind(pc.n,
 
 So settling on 65PC's we apply our clustering methods to see which works best on our data.
 ```{r}
+pc.65 = pc.n$x[,1:65]
+```
 
 
+```{r}
+hc.single <- hclust(dist(trainX), method = "single")
+hc.complete <- hclust(dist(trainX), method = "complete")
 
-dirs = pc.n$rotation
-scrs = pc.n$x
-dim(scrs)
-pc.n$x[,1:65]
+plot(hc.single, main = "Single linkage", xlab = "", sub = "", cex = 0.5)
+plot(hc.complete, main = "Complete linkage", xlab = "", sub = "", cex = 0.5)
+
 ```
 
 
