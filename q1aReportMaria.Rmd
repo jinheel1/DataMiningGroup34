@@ -241,18 +241,33 @@ pam.res = pam(X, k = 2)
 pam.res.65.2 = pam(pc.65, k = 2)
 pam.res.65.4 = pam(pc.65, k = 4)
 
-pam.res$clustering
-pam.res.65.2$clustering
-pam.res.65.4$clustering
 # Error proportion: the number of incorrect classification divided the number of rows
 kmed_error = best_cluster(y$label, pam.res$clustering)[3]
-cat("Error:", kmed_error * 100, "%")
-
 kmed_error.65.2 = best_cluster(y$label, pam.res.65.2$clustering)[3]
-cat("Error:", kmed_error.64.2 * 100, "%")
-
 kmed_error.65.4 = best_cluster(y$label, pam.res.65.4$clustering)[3]
-cat("Error:", kmed_error.64.4 * 100, "%")
+
+cat("Error:", round(kmed_error * 100, 2), "%")
+cat("Error:", round(kmed_error.64.2 * 100, 2), "%")
+cat("Error:", round(kmed_error.64.4 * 100, 2), "%")
+```
+
+
+# Supervised Learning
+
+## Methods Used
+
+### LDA
+
+### QDA
+
+### kNN
+
+
+
+### Trees
+
+
+```{r}
 
 ```
 
