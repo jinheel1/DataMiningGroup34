@@ -12,15 +12,35 @@ trainY.df = data.frame(trainY)
 
 
 pr.out <- prcomp(trainX, scale=TRUE, center = TRUE)
-summary(pr.out)
+# summary(pr.out)
 
 # prin.out <- princomp(trainX)
 # summary(prin.out)
+# 
+# pca.test <- pr.out$x[,1:92]
+# dim(pr.out$x)
+# 
+# plot(pr.out)
 
-pca.test <- pr.out$x[,1:92]
-dim(pr.out$x)
+# function that assigns a color to a class label
+Cols <- function(vec){
+  cols = rainbow(length(unique(vec)))
+  return(cols[as.numeric(as.factor(vec))])
+}
 
-biplot(pr.out, choices = 4:5, scale=0)
+
+# plots of scores of first 3 principal components. Even from these we can see clear differentiation of the data according to class labels (even though they were not used in any calculation)
+par(mfrow=c(1,2))
+plot(pr.out$x[,1:2], col = Cols(trainY), pch = 19, xlab = "Z1", ylab = "Z2")
+plot(pr.out$x[,c(1,3)], col=Cols(trainY), pch = 19, xlab = "Z1", ylab = "Z2")
+
+# plotting proportion of variance for each PC and cumulative proportion of variance explained (pve)
+pve = 100*pr.out$sdev^2/sum(pr.out$sdev^2)
+plot(pve, type = "o", ylab = "PVE", xlab = "Principal component")
+plot(cumsum(pve), type = "o", ylab = "Cumulative PVE", xlab = "Principal component")
+plot(diff(pve))
+
+# There's a somewhat elbow point after the ~10th principal component, but up to 10 principal components only explains about 47% of the variance, which isn't too much.
 ```
 
 ```{r}
@@ -134,4 +154,6 @@ min(sum(knn.pred != trainY[samp])/length(trainY[samp]),
 ```
 
 Supervised learning: For this problem, we have the class labels associated with the training data available to us, and we attempt to find a supervised learning approach that yields the best results (i.e. has the lowest Hamming classification error). The approaches that we chose to investigate were linear discriminant analysis (LDA), logistic regression, linear regression, ridge regression, the lasso, k-nearest neighbors (k-NN), and decision trees.
+
+Linear discriminant analysis is an effective way to determine a decision boundary between 2 classes. One assumption of LDA is that each class is normally distributed
 

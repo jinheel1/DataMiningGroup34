@@ -26,6 +26,7 @@ One of the methods we used for clustering was hierarchical clustering. We tried 
 
 ```{r, message=F, warning=F, width=10, height=8, echo=F}
 load("TrainData.RData")
+trainY.df = data.frame(trainY)
 set.seed(1)
 library(clues)
 library(combinat)
@@ -115,6 +116,20 @@ fviz_cluster(pam.res,
 ```
 
 ```{r, echo=F}
+library(combinat)
+
+best_cluster <- function(cut1, cut2) {
+  per <- permn(1:2)
+  hamming <- numeric(length(per))
+  for (i in 1:length(per)) {
+    ts <- table(cut1, cut2)
+    ts <- ts[per[[i]],]
+    diag(ts) <- 0
+    hamming[i] <- sum(ts)
+  }
+  return(c(min(hamming), which.min(hamming)))
+}
+
 library(ClusterR)
 
 # Error proportion: the number of incorrect classification divided the number of rows
@@ -133,5 +148,7 @@ cat("Error:", kmed_error * 100, "%")
 #### QDA
 
 #### kNN
+
+
 
 #### Decision Trees
