@@ -27,7 +27,7 @@ The two methods that apply PCA in R are princomp and prcomp. Princomp cannot be 
 [Source2](https://en.wikipedia.org/wiki/Eigendecomposition_of_a_matrix)
 [Source3](https://en.wikipedia.org/wiki/Diagonalizable_matrix)
 
-Thus we apply prcomp to our data because it uses singular value decomposition, this examines the covariance and correlations between our observed . But before this we explore it for a bit.
+Thus we apply prcomp to our data because it uses singular value decomposition, this examines the covariance and correlations between our observed patients and doesn't require X to be a diagnolizable matrix. But before this we explore it for a bit.
 
 Load Data, Explore type, shape and NAs
 ```{r}
