@@ -26,6 +26,7 @@ One of the methods we used for clustering was hierarchical clustering. We tried 
 
 ```{r, message=F, warning=F, width=10, height=8, echo=F}
 load("TrainData.RData")
+trainY.df = data.frame(trainY)
 set.seed(1)
 library(clues)
 library(combinat)
