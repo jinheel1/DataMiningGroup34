@@ -48,7 +48,75 @@ sum(apply(X, 1, function(x){any(is.na(x))}))
 head(X[,1:5])
 ```
 
-```{r}
+#XXXLater on when exploring LDA check the normality assumption of the data
 
+PCA: With prcomp we consider the case where X is scaled and not-scaled. Initially this is just to explore the results but ultimately we wish to scale our variables "otherwise the magnitude to certain variables dominates the associations between the variables in the
+sample"(Source)[https://stats.stackexchange.com/questions/268264/normalizing-all-the-variarbles-vs-using-scale-true-option-in-prcomp-in-r].
+```{r}
+pc = prcomp(X, center = T)
+summary(pc)
+#PC1 explains 57.5% of the data. 
+#PC12 explains 90.5%
+#PC22 explains 95%
+#PC46 explains 99%
+
+pc.n = prcomp(X, center = T, scale = T)
+summary(pc.n)
+#PC1 explains 11%
+#PC50 explains 90%
+#PC65 explains 95%
+#PC92 explains 99%
 ```
 
+To visualize the dimensions we use factoextra to create a ggplot2 visualization of our PCA objects.
+```{r}
+install.packages("ggplot2")
+install.packages("factoextra")
+library(ggplot2)
+library(factoextra)
+
+fviz_eig(pc, ncp = 15)
+fviz_eig(pc.n, ncp = 15)
+#It seems that when non-scaled PC1 dominates the amount of variance explained by the PCs.
+#Our scaled PC object shows a fairer distribution of variance, as expected.
+
+fviz_pca_biplot(pc)
+fviz_pca_biplot(pc.n)
+#For our unscaled PC object it seems the vectors of X248, and X139 and X211, are two groups that are drastically different from the rest of our variables. There are also some that are different from the core cluster such as X90,X148, and X27 but they differ far less than those at the extreme.
+#However, When you scale the variables you observe that there are two groups of variables that have similar response profiles. By this I mean there seem to be two groups where within each group they all have similar values to each other for the same patients. In another word, they have similar meaning in the context of the data.
+#There's also the variables clustered in the center lower right half, these are pointing away from the two extreme clusters which means they are unlike those two groups, however, they do not seem to explain much variance in that direction.
+
+fviz_pca_ind(pc,
+             col.ind = "cos2", # Color by the quality of representation
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE     # Avoid text overlapping
+)
+fviz_pca_ind(pc.n,
+             col.ind = "cos2", # Color by the quality of representation
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE     # Avoid text overlapping
+)
+
+fviz_pca_var(pc,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE     # Avoid text overlapping
+)
+fviz_pca_var(pc.n,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE     # Avoid text overlapping
+)
+
+
+dirs = pc$rotation
+scrs = pc$x
+
+dirs = pc.n$rotation
+scrs = pc.n$x
+dim(scrs)
+pc.n$x[,1:92]
+```
+
+
+The proportion of variance explained by the principal component directions is a way of quanitfying how much structure of the data is being captured.
