@@ -167,7 +167,6 @@ cat("Error:", kmed_error.64.2 * 100, "%")
 
 kmed_error.65.4 = best_cluster(y$label, pam.res.65.4$clustering)[3]
 cat("Error:", kmed_error.64.4 * 100, "%")
-
 ```
 
 
