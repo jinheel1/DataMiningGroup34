@@ -36,7 +36,7 @@ y <- read.table(file="trainy.txt",header=TRUE)
 
 #Shape
 dim(X)
-#Checking to see if any column is fully 0
+#Checking to see if any column is fully 0, there's none
 sum(colSums(X) == 0)
 #summary(X)
 #str(X)
