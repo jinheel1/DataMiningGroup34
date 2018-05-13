@@ -1,0 +1,82 @@
+---
+title: "STAT 36-462 Final"
+author: "Kayla Oliva, keoliva"
+output:
+  pdf_document: default
+  word_document: default
+header-includes:
+- \usepackage{amsthm}
+- \usepackage{cancel}
+- \usepackage{bbm}
+- \usepackage{bm}
+---
+
+## Hierarchical Clustering
+One of the methods we used for clustering was hierarchical clustering. We tried four different types of linkage, and observed that the complete and average linkage had the lowest hamming clustering errors. The classification errors are presented below, including before and after applying normalized PCA to the training data. Although, single linkage suffers from chaining, complete linkage suffers from crowding, and average linkage strikes a balance so that clusters are simulataneously relatively compact and far away, the clustering results of complete and average linkage ended up doing better than single and centroid linkages' results. Since, average linkage results in more ideal clusters, we will choose the result of average linkage hierarchical clustering, to compare against the rest of the unsupervised learning models. 
+
+```{r, message=F, warning=F, width=10, height=8, echo=F}
+load("TrainData.RData")
+set.seed(123)
+library(clues)
+library(combinat)
+library(dendextend)
+library(pander)
+
+compute.clustering.error <- function(true.labels, predictions) {
+  perms <- permn(c(0, 1))
+  min.error <- Inf
+  for (p in 1:length(perms)) {
+    pi <- perms[[p]]
+    error <- 0
+    for (i in 1:length(true.labels)) {
+      l <- true.labels[i]
+      l.pred <- predictions[i]
+      if (l != pi[l.pred]) {
+        error <- error + 1
+      }
+    }
+    if (error < min.error) {
+      min.error <- error
+    }
+  }
+  return(min.error)
+}
+
+methods <- c("Single", "Complete", "Average", "Centroid")
+clusterings <- function(withPCA, res, makePlot=FALSE) {
+  if (withPCA) {
+    resRow <- 2
+    pr.out <- prcomp(trainX, center=TRUE, scale=TRUE)
+    dist.matrix <- dist(pr.out$x[,1:92])
+    title <- "After"
+  } else {
+    resRow <- 1
+    dist.matrix <- dist(trainX)
+    title <- "Before"
+  }
+  for (i in 1:4) {
+    method <- methods[i]
+    hc.out <- hclust(dist.matrix, method=tolower(method))
+    hc.clustering <- cutree(hc.out, 2)
+    res[resRow, i] <- compute.clustering.error(trainY, (hc.clustering)) / nrow(trainX)
+    if (makePlot && (method == "Single" || method == "Complete")) {
+      dend <- hc.out %>% as.dendrogram %>% set("labels_cex", .35) %>% color_branches(k = 2)
+      plot(dend, main=paste(method, " Linkage", "\n(", title, " Applying PCA)", sep=""))
+    }
+  }
+  res
+}
+
+res <- clusterings(FALSE, matrix(NA, nrow=2, ncol=4))
+res <- clusterings(TRUE, res)
+pander(res)
+colnames(res) <- methods
+rownames(res) <- c("Before Applying PCA", "After Applying PCA")
+pander(res)
+```
+
+```{r, echo=F}
+# c(bottom, left, top, right) 
+par(mfrow=c(2, 2), mar=c(2,5,2,0.5))
+res <- clusterings(TRUE, clusterings(FALSE, matrix(NA, nrow=2, ncol=4), TRUE), TRUE)
+```
