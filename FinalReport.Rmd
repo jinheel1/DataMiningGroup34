@@ -26,7 +26,7 @@ One of the methods we used for clustering was hierarchical clustering. We tried 
 
 ```{r, message=F, warning=F, width=10, height=8, echo=F}
 load("TrainData.RData")
-trainY.df = data.frame(trainY)
+y$label.df = data.frame(y$label)
 set.seed(1)
 library(clues)
 library(combinat)
@@ -54,23 +54,23 @@ compute.clustering.error <- function(true.labels, predictions) {
 }
 
 methods <- c("Single", "Complete", "Average", "Centroid")
-n <- nrow(trainX)
+n <- nrow(X)
 clusterings <- function(withPCA, res, makePlot=FALSE) {
   if (withPCA) {
     resRow <- 2
-    pr.out <- prcomp(trainX, center=TRUE, scale=TRUE)
+    pr.out <- prcomp(X, center=TRUE, scale=TRUE)
     dist.matrix <- dist(pr.out$x[,1:2])
     title <- "After"
   } else {
     resRow <- 1
-    dist.matrix <- dist(trainX)
+    dist.matrix <- dist(X)
     title <- "Before"
   }
   for (i in 1:4) {
     method <- methods[i]
     hc.out <- hclust(dist.matrix, method=tolower(method))
     hc.clustering <- cutree(hc.out, 2)
-    res[resRow, i] <- compute.clustering.error(trainY, (hc.clustering)) / n
+    res[resRow, i] <- compute.clustering.error(y$label, (hc.clustering)) / n
     if (makePlot && (method == "Single" || method == "Complete")) {
       dend <- hc.out %>% as.dendrogram %>% set("labels_cex", .35) %>% color_branches(k = 2)
       plot(dend, main=paste(method, " Linkage", "\n(", title, " Applying PCA)", sep=""))
@@ -101,10 +101,10 @@ Another method we used for clustering was K-medoids clustering. Below, the code 
 library(factoextra)
 library(cluster)
 # Calculating optimal number of clusters
-fviz_nbclust(trainX, pam, method = "silhouette") + theme_classic()
+fviz_nbclust(X, pam, method = "silhouette") + theme_classic()
 
 
-pam.res = pam(trainX, k = 2)
+pam.res = pam(X, k = 2)
 
 # Visualization of K-medoids clustering
 fviz_cluster(pam.res, 
@@ -133,7 +133,7 @@ best_cluster <- function(cut1, cut2) {
 library(ClusterR)
 
 # Error proportion: the number of incorrect classification divided the number of rows
-kmed_error = best_cluster(trainY, pam.res$clustering)[1] / nrow(trainX)
+kmed_error = best_cluster(y$label, pam.res$clustering)[1] / nrow(X)
 cat("Error:", kmed_error * 100, "%")
 ```
 
