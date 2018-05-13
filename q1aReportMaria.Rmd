@@ -1,0 +1,44 @@
+---
+title: "Final Project Report from Group 34"
+author: "36-462 -- Maria Rodriguez"
+output: 
+  pdf_document: 
+    highlight: tango
+    latex_engine: xelatex
+    df_print: kable
+    keep_tex: yes
+    fig_crop: yes
+mainfont: Palatino
+fontsize: 11pt
+---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, cache=T, autodep=F, cache.comments=FALSE, 
+                      warning=F, message=F, tidy=T, strip.white = TRUE)
+```
+
+Q1a: Is there any interesting structure present in the data? 
+
+The data frame given to us contained 133 patients with 248 gene encodings. Given this high dimensionality it is extremely difficult to determine if there is any structure in the data. To solve this we explore several different dimension reduction methods to determine what sort of structure exists in the data. 
+
+The first method explored is Principal Component Analysis (PCA), PCA is used as a technique to emphasize variation and highllight strong patterns in data. This also makes it easy to explore and visualize. [Source](http://setosa.io/ev/principal-component-analysis/) 
+
+The two methods that apply PCA in R are princomp and prcomp. Princomp cannot be used on X because it uses the spectral decomposition approach, this would factorize X into a canonical form where it is represented by its eigenvalues and eigenvectors. Only diagnolizable matrices can be factored in this way, X is not a diagnolizable matrix.
+[Source1](http://www.sthda.com/english/articles/31-principal-component-methods-in-r-practical-guide/118-principal-component-analysis-in-r-prcomp-vs-princomp/)
+[Source2](https://en.wikipedia.org/wiki/Eigendecomposition_of_a_matrix)
+[Source3](https://en.wikipedia.org/wiki/Diagonalizable_matrix)
+
+Thus we apply prcomp to our data because it uses singular value decomposition, this examines the covariance and correlations between our observed . But before this we explore it for a bit.
+
+Load Data
+```{r}
+X <- read.table(file="trainX.txt",header=TRUE)
+y <- read.table(file="trainy.txt",header=TRUE)
+
+#Shape
+dim(X)
+#Checking to see if any column is fully 0
+sum(colSums(X) == 0)
+#summary(X)
+#str(X)
+```
+
