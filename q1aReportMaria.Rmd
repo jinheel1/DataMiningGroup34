@@ -29,7 +29,7 @@ The two methods that apply PCA in R are princomp and prcomp. Princomp cannot be 
 
 Thus we apply prcomp to our data because it uses singular value decomposition, this examines the covariance and correlations between our observed . But before this we explore it for a bit.
 
-Load Data
+Load Data, Explore type, shape and NAs
 ```{r}
 X <- read.table(file="trainX.txt",header=TRUE)
 y <- read.table(file="trainy.txt",header=TRUE)
@@ -38,7 +38,17 @@ y <- read.table(file="trainy.txt",header=TRUE)
 dim(X)
 #Checking to see if any column is fully 0, there's none
 sum(colSums(X) == 0)
+#No NA's
+sum(apply(X, 1, function(x){any(is.na(x))}))
+
+#These have really long output so we're not executing them 
+#but it seems all column's are doubles
 #summary(X)
 #str(X)
+head(X[,1:5])
+```
+
+```{r}
+
 ```
 
