@@ -48,6 +48,17 @@ sum(apply(X, 1, function(x){any(is.na(x))}))
 head(X[,1:5])
 ```
 
+Feature Selection
+```{r}
+#install.packages("caret", dependencies = TRUE)
+library(ggplot2)
+library(caret)
+
+correlationMatrix <- cor(X)
+highlyCorrelated <- findCorrelation(correlationMatrix, cutoff=0.85)
+print(highlyCorrelated)
+```
+
 
 PCA: With prcomp we consider the case where X it is scaled. From our summary output we see that they have many different ranges and these large differences in magnitude make scaling an appropriate step to take in this scenario. If we weren't to scale our variables the magnitude of certain variables would dominate to associations between variables in the sample.(Source)[https://stats.stackexchange.com/questions/268264/normalizing-all-the-variarbles-vs-using-scale-true-option-in-prcomp-in-r].
 ```{r}
@@ -68,7 +79,7 @@ library(ggplot2)
 library(factoextra)
 ```
 
-The screeplot of PC object shows a decreasing variance explained, as expected. To determine the amount of PC's I want to determine it is helpful to see the increasing gains in variance explained be each new PC. Using this it seems that the elbow of cumulative variance explained is passed around 60. So going down to 60 PC's seems to be the reasonable next steps.
+The screeplot of PC object shows an elbow around 10 but that isn't enough variance explained. To determine the amount of PC's to retain I need to see the increasing gains in variance explained by each new PC. Using this it seems that the elbow of cumulative variance explained is passed around 60. So going down to 65 PC's seems to be the reasonable given it covers 95% of variance.
 ```{r}
 fviz_eig(pc.n, ncp = 80)
 vars = apply(pc.n$x, 2, var)
@@ -80,42 +91,34 @@ qplot(seq_along(prop_cumsum), prop_cumsum) + xlab("PC") +
 ```
 
 You can observe that there are two groups of variables that have similar meaning in the context of the data. The variables group on the right seem to have large positive loadings on dimension 2. On the group that is pointing left they seem to have high negative loadings on dimension 1.
-There's also the variables clustered in the center lower right half, these are pointing away from the two extreme clusters which means they are unlike those two groups, they have low positive loadings on dimension 1 and dimension 2.
+There's also the variables clustered in the center lower right half, these are pointing away from the two extreme clusters which means they are unlike those two groups, they have low positives loadings on dimension 1 and dimension 2.
+Looking at the contributions of variables it seems agreed upon in the variable loading plot that there's three different variable behaviors, those positive in dim2, negative on dim1, and all others.
 ```{r}
 fviz_pca_biplot(pc.n)
-```
-
-```{r}
-fviz_pca_ind(pc,
-             col.ind = "cos2", # Color by the quality of representation
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE)
-fviz_pca_ind(pc.n,
-             col.ind = "cos2", # Color by the quality of representation
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE)
-```
-
-```{r}
-fviz_pca_var(pc,
-             col.var = "contrib", # Color by contributions to the PC
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE     # Avoid text overlapping
-)
 fviz_pca_var(pc.n,
              col.var = "contrib", # Color by contributions to the PC
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE     # Avoid text overlapping
-)
+             repel = TRUE)
+
+```
+
+For the patients themselves it seems there are two differing groups, one highly positive on dimension 2 and one highly negative on dimension 1 and these groups have high contributions to the data. Most other patients lie in the center of the two dimensions.
+```{r}
+fviz_pca_ind(pc.n,
+             col.ind = "contrib", # Color by the quality of representation
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE)
+```
+
+So settling on 65PC's we apply our clustering methods to see which works best on our data.
+```{r}
 
 
-dirs = pc$rotation
-scrs = pc$x
 
 dirs = pc.n$rotation
 scrs = pc.n$x
 dim(scrs)
-pc.n$x[,1:92]
+pc.n$x[,1:65]
 ```
 
 

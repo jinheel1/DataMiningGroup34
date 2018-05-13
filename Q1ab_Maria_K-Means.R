@@ -71,7 +71,7 @@ require(MASS)
 n = nrow(trainX)
 p = ncol(trainX)
 
-a = lda(trainX, trainY)
+a = lda(X, y)
 at = a$scaling
 
 trainX.mat = as.matrix(trainX)
