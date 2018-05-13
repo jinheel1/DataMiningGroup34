@@ -48,19 +48,11 @@ sum(apply(X, 1, function(x){any(is.na(x))}))
 head(X[,1:5])
 ```
 
-#XXXLater on when exploring LDA check the normality assumption of the data
 
-PCA: With prcomp we consider the case where X is scaled and not-scaled. Initially this is just to explore the results but ultimately we wish to scale our variables "otherwise the magnitude to certain variables dominates the associations between the variables in the
-sample"(Source)[https://stats.stackexchange.com/questions/268264/normalizing-all-the-variarbles-vs-using-scale-true-option-in-prcomp-in-r].
+PCA: With prcomp we consider the case where X it is scaled. From our summary output we see that they have many different ranges and these large differences in magnitude make scaling an appropriate step to take in this scenario. If we weren't to scale our variables the magnitude of certain variables would dominate to associations between variables in the sample.(Source)[https://stats.stackexchange.com/questions/268264/normalizing-all-the-variarbles-vs-using-scale-true-option-in-prcomp-in-r].
 ```{r}
-pc = prcomp(X, center = T)
-summary(pc)
-#PC1 explains 57.5% of the data. 
-#PC12 explains 90.5%
-#PC22 explains 95%
-#PC46 explains 99%
-
 pc.n = prcomp(X, center = T, scale = T)
+names(pc.n)
 summary(pc.n)
 #PC1 explains 11%
 #PC50 explains 90%
@@ -74,29 +66,37 @@ install.packages("ggplot2")
 install.packages("factoextra")
 library(ggplot2)
 library(factoextra)
+```
 
-fviz_eig(pc, ncp = 15)
-fviz_eig(pc.n, ncp = 15)
-#It seems that when non-scaled PC1 dominates the amount of variance explained by the PCs.
-#Our scaled PC object shows a fairer distribution of variance, as expected.
+The screeplot of PC object shows a decreasing variance explained, as expected. To determine the amount of PC's I want to determine it is helpful to see the increasing gains in variance explained be each new PC. Using this it seems that the elbow of cumulative variance explained is passed around 60. So going down to 60 PC's seems to be the reasonable next steps.
+```{r}
+fviz_eig(pc.n, ncp = 80)
+vars = apply(pc.n$x, 2, var)
+prop_cumsum = cumsum(vars / sum(vars))
+qplot(seq_along(prop_cumsum), prop_cumsum) + xlab("PC") + 
+  ylab("Cumulative Proportion of Variance Explained") + theme_minimal() +
+  scale_x_continuous(breaks = seq(0, 133, by = 5)) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.05))
+```
 
-fviz_pca_biplot(pc)
+You can observe that there are two groups of variables that have similar meaning in the context of the data. The variables group on the right seem to have large positive loadings on dimension 2. On the group that is pointing left they seem to have high negative loadings on dimension 1.
+There's also the variables clustered in the center lower right half, these are pointing away from the two extreme clusters which means they are unlike those two groups, they have low positive loadings on dimension 1 and dimension 2.
+```{r}
 fviz_pca_biplot(pc.n)
-#For our unscaled PC object it seems the vectors of X248, and X139 and X211, are two groups that are drastically different from the rest of our variables. There are also some that are different from the core cluster such as X90,X148, and X27 but they differ far less than those at the extreme.
-#However, When you scale the variables you observe that there are two groups of variables that have similar response profiles. By this I mean there seem to be two groups where within each group they all have similar values to each other for the same patients. In another word, they have similar meaning in the context of the data.
-#There's also the variables clustered in the center lower right half, these are pointing away from the two extreme clusters which means they are unlike those two groups, however, they do not seem to explain much variance in that direction.
+```
 
+```{r}
 fviz_pca_ind(pc,
              col.ind = "cos2", # Color by the quality of representation
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE     # Avoid text overlapping
-)
+             repel = TRUE)
 fviz_pca_ind(pc.n,
              col.ind = "cos2", # Color by the quality of representation
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE     # Avoid text overlapping
-)
+             repel = TRUE)
+```
 
+```{r}
 fviz_pca_var(pc,
              col.var = "contrib", # Color by contributions to the PC
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
@@ -120,3 +120,6 @@ pc.n$x[,1:92]
 
 
 The proportion of variance explained by the principal component directions is a way of quanitfying how much structure of the data is being captured.
+
+
+#XXXLater on when exploring LDA check the normality assumption of the data

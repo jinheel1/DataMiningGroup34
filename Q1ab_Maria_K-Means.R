@@ -29,10 +29,12 @@ corr1 = corrplot(cor_jnk, order="AOE", method="color", type="upper",
 #There seems to be a small number of variables with high correlations.
 #But I haven't reduced the dimensions so we can check correlations after removing variables.
 
-pc = prcomp(X)
-dirs = pc$rotation
-scrs = pc$x
+pc = prcomp(X, center = T)
 summary(pc)
+#PC1 explains 57.5% of the data.
+#PC12 explains 90.5%
+#PC22 explains 95%
+#PC46 explains 99%
 screeplot(pc, npcs = 20, type = "lines")
 
 pc.n = prcomp(X, center = T, scale = T)
