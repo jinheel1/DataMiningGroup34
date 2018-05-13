@@ -93,13 +93,40 @@ samp <- sample(1:133, 33)
 train.knn <- trainX[-samp,]
 test.knn <- trainX[samp,]
 
-knn.pred <- knn(train.knn, test.knn, trainY[-samp], k = 7)
+knn.pred <- knn(train.knn, test.knn, trainY[-samp], k = 1)
 
 table(knn.pred, trainY[samp])
 
 min(sum(knn.pred != trainY[samp])/length(trainY[samp]), 
                    sum(!knn.pred != trainY[samp])/length(trainY[samp]))
 
+# best_cluster(trainY[samp], knn.pred) / length(trainY[samp])
+
+samp <- sample(rep(1:5), nrow(trainX)/5, replace = F)
+
+new_mat = matrix(NA, nrow = 132, ncol = 5)
+
+for (folds in 1:5) {
+  train.knn <- trainX[!(samp == folds),]
+  test.knn <- trainX[samp == folds,]
+  
+  for (k in 2:133) {
+    knn.pred <- knn(train.knn, test.knn, trainY[!(samp == folds)], k)
+    
+    # table(knn.pred, trainY[samp])
+    
+    new_mat[k - 1, folds] = min(
+      sum(knn.pred != trainY[!(samp == folds)]) / length(trainY[!(samp == folds)]), 
+      sum(!knn.pred != trainY[!(samp == folds)]) / length(trainY[!(samp == folds)])
+      )
+    
+  }
+  
+  
+}
+
+
+rowMeans(new_mat)
 
 
 
