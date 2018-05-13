@@ -223,6 +223,10 @@ err_calc.pca = best_cluster(kmeans.results.pca$cluster, y$label)
 err_calc.pca[3] #Error
 ```
 
+#### K-Medoids
+
+Another method we used for clustering was K-medoids clustering. Below, the code calculates the optimal number of clusters to be 2, clusters the data using the `pam()` function, and visualizaes the data. We used a custom function `best_cluster()` and calculated the error in the clustering to be about 10.5%. Although more computationally difficult, k-medoids clustering...
+
 
 ```{r}
 library(factoextra)
@@ -234,20 +238,20 @@ fviz_nbclust(pc.65, pam, method = "silhouette") + theme_classic()
 
 ```{r}
 pam.res = pam(X, k = 2)
-pam.res.64.2 = pam(pc.65, k = 2)
-pam.res.64.4 = pam(pc.65, k = 4)
+pam.res.65.2 = pam(pc.65, k = 2)
+pam.res.65.4 = pam(pc.65, k = 4)
 
 pam.res$clustering
-pam.res.64.2$clustering
-pam.res.64.4$clustering
+pam.res.65.2$clustering
+pam.res.65.4$clustering
 # Error proportion: the number of incorrect classification divided the number of rows
-kmed_error = best_cluster(pam.res$clustering, y$label)[3]
+kmed_error = best_cluster(y$label, pam.res$clustering)[3]
 cat("Error:", kmed_error * 100, "%")
 
-kmed_error.64.2 = best_cluster(pam.res.64.2$clustering, y$label)[3]
+kmed_error.65.2 = best_cluster(y$label, pam.res.65.2$clustering)[3]
 cat("Error:", kmed_error.64.2 * 100, "%")
 
-kmed_error.64.4 = best_cluster(pam.res.64.4$clustering, y$label)[3]
+kmed_error.65.4 = best_cluster(y$label, pam.res.65.4$clustering)[3]
 cat("Error:", kmed_error.64.4 * 100, "%")
 
 ```
