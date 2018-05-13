@@ -88,6 +88,7 @@ qplot(seq_along(prop_cumsum), prop_cumsum) + xlab("PC") +
   ylab("Cumulative Proportion of Variance Explained") + theme_minimal() +
   scale_x_continuous(breaks = seq(0, 133, by = 5)) +
   scale_y_continuous(breaks = seq(0, 1, by = 0.05))
+#plot(diff(prop_cumsum))
 ```
 
 You can observe that there are two groups of variables that have similar meaning in the context of the data. The variables group on the right seem to have large positive loadings on dimension 2. On the group that is pointing left they seem to have high negative loadings on dimension 1.
