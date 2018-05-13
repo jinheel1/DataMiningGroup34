@@ -16,8 +16,11 @@ knitr::opts_chunk$set(echo=TRUE, cache=T, autodep=F, cache.comments=FALSE,
                       warning=F, message=F, tidy=T, strip.white = TRUE)
 ```
 # Unsupervised Learning
+
 ## Is there any interesting structure present in the data? 
+
 ## Clustering Methods Used
+
 #### Hierarchical Clustering
 One of the methods we used for clustering was hierarchical clustering. We tried four different types of linkage, and observed that the complete and average linkage had the lowest hamming clustering errors. The classification errors are presented below, including before and after applying normalized PCA to the training data. Although, single linkage suffers from chaining, complete linkage suffers from crowding, and average linkage strikes a balance so that clusters are simulataneously relatively compact and far away, the clustering results of complete and average linkage ended up doing better than single and centroid linkages' results. Since, average linkage results in more ideal clusters, we will choose the result of average linkage hierarchical clustering, to compare against the rest of the unsupervised learning models. 
 
@@ -86,12 +89,45 @@ pander(res)
 par(mfrow=c(2, 2), mar=c(2,5,2,0.5))
 res <- clusterings(TRUE, clusterings(FALSE, matrix(NA, nrow=2, ncol=4), TRUE), TRUE)
 ```
+
 #### K-Means
 
 #### K-Medoids
 
+Another method we used for clustering was K-medoids clustering. Below, the code calculates the optimal number of clusters to be 2, clusters the data using the `pam()` function, and visualizaes the data. We used a custom function `best_cluster()` and calculated the error in the clustering to be about 10.5%. Although more computationally difficult, k-medoids clustering...
+
+```{r, echo=F}
+library(factoextra)
+library(cluster)
+# Calculating optimal number of clusters
+fviz_nbclust(trainX, pam, method = "silhouette") + theme_classic()
+
+
+pam.res = pam(trainX, k = 2)
+
+# Visualization of K-medoids clustering
+fviz_cluster(pam.res, 
+             palette = c("#00AFBB", "#FC4E07"), # color palette
+             ellipse.type = "t", # Concentration ellipse
+             repel = TRUE, # Avoid label overplotting (slow)
+             ggtheme = theme_classic()
+             )
+```
+
+```{r, echo=F}
+library(ClusterR)
+
+# Error proportion: the number of incorrect classification divided the number of rows
+kmed_error = best_cluster(trainY, pam.res$clustering)[1] / nrow(trainX)
+cat("Error:", kmed_error * 100, "%")
+```
+
+
+
 # Supervised Learning
+
 ## Methods Used
+
 #### LDA
 
 #### QDA
