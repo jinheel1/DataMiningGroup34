@@ -48,16 +48,6 @@ sum(apply(X, 1, function(x){any(is.na(x))}))
 head(X[,1:5])
 ```
 
-Feature Selection
-```{r}
-#install.packages("caret", dependencies = TRUE)
-library(ggplot2)
-library(caret)
-
-correlationMatrix <- cor(X)
-highlyCorrelated <- findCorrelation(correlationMatrix, cutoff=0.85)
-print(highlyCorrelated)
-```
 
 
 PCA: With `prcomp()` we consider the case where X is scaled. From our summary output we see that they have many different ranges, necessitating scaling, lest the magnitude of certain variables dominate associations between variables in the sample.(Source)[https://stats.stackexchange.com/questions/268264/normalizing-all-the-variarbles-vs-using-scale-true-option-in-prcomp-in-r].
