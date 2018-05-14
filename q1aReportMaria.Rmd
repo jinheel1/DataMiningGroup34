@@ -10,7 +10,7 @@ output:
     fig_crop: yes
 mainfont: Palatino
 fontsize: 10pt
-geometry: 
+geometry: margin=1in
 ---
 ```{r global_options, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE, cache=T, autodep=F, cache.comments=FALSE, 
@@ -23,13 +23,13 @@ knitr::opts_chunk$set(echo=TRUE, cache=T, autodep=F, cache.comments=FALSE,
 
 The data frame given to us contained 133 patients with 248 gene encodings. Given this high dimensionality it is extremely difficult to determine if there is any structure in the data. To solve this we explore several different dimension reduction methods to determine what sort of structure exists in the data. 
 
-The first method explored is Principal Component Analysis (PCA), PCA is used as a technique to emphasize variation and highllight strong patterns in data. This also makes it easy to explore and visualize. 
+The first method explored is Principal Component Analysis (PCA). PCA is a technique used to emphasize variation and highlight strong patterns in data. This also makes it easy to explore and visualize the data.
 
-The two methods that apply PCA in R are princomp and prcomp. Princomp cannot be used on X because it uses the spectral decomposition approach, this would factorize X into a canonical form where it is represented by its eigenvalues and eigenvectors. Only diagnolizable matrices can be factored in this way, X is not a diagnolizable matrix.
+The two methods that apply PCA in R are `princomp()` and `prcomp()`. `princomp()` cannot be used on X because it uses the spectral decomposition approach. This would factorize X into a canonical form, where it is represented by its eigenvalues and eigenvectors. Only diagnolizable matrices can be factored in this way - X is not a diagnolizable matrix.
 
-Thus we apply prcomp to our data because it uses singular value decomposition, this examines the covariance and correlations between our observed patients and doesn't require X to be a diagnolizable matrix. But before this we explore it for a bit.
+Thus we apply `prcomp()` to our data because it uses singular value decomposition. This examines the covariance and correlations between our observed patients and doesn't require X to be a diagnolizable matrix. But before this we explore it for a bit.
 
-Load Data, Explore type, shape and NAs
+Load Data, Explore type, Shape and NAs
 ```{r}
 X <- read.table(file="trainX.txt",header=TRUE)
 y <- read.table(file="trainy.txt",header=TRUE)
@@ -60,15 +60,20 @@ print(highlyCorrelated)
 ```
 
 
-PCA: With prcomp we consider the case where X it is scaled. From our summary output we see that they have many different ranges and these large differences in magnitude make scaling an appropriate step to take in this scenario. If we weren't to scale our variables the magnitude of certain variables would dominate to associations between variables in the sample.(Source)[https://stats.stackexchange.com/questions/268264/normalizing-all-the-variarbles-vs-using-scale-true-option-in-prcomp-in-r].
+PCA: With `prcomp()` we consider the case where X is scaled. From our summary output we see that they have many different ranges, necessitating scaling, lest the magnitude of certain variables dominate associations between variables in the sample.(Source)[https://stats.stackexchange.com/questions/268264/normalizing-all-the-variarbles-vs-using-scale-true-option-in-prcomp-in-r].
+
 ```{r}
 pc.n = prcomp(X, center = T, scale = T)
 names(pc.n)
 summary(pc.n)
-#PC1 explains 11% #PC50 explains 90% #PC65 explains 95% #PC92 explains 99%
+#PC1 explains 11%
+#PC50 explains 90%
+#PC65 explains 95%
+#PC92 explains 99%
 ```
 
-To visualize the dimensions we use factoextra to create a ggplot2 visualization of our PCA objects.
+To visualize the dimensions, we use the package `factoextra` to create a ggplot2 visualization of our PCA objects.
+
 ```{r}
 #install.packages("ggplot2")
 #install.packages("factoextra")
@@ -76,7 +81,8 @@ library(ggplot2)
 library(factoextra)
 ```
 
-The screeplot of PC object shows an elbow around 10 but that isn't enough variance explained. To determine the amount of PC's to retain I need to see the increasing gains in variance explained by each new PC. Using this it seems that the elbow of cumulative variance explained is passed around 60. So going down to 65 PC's seems to be the reasonable given it covers 95% of variance. The proportion of variance explained by the principal component directions is a way of quanitfying how much structure of the data is being captured and if we can capture 95% of the data from 65 PC's that's much better than 100% of the data being captured from 248 variables.
+The screeplot of PC object shows an elbow around 10 but it doesn't explain enough variance. To determine the amount of PC's to retain we need to see the increasing gains in variance explained by each new PC. It seems that the elbow of cumulative variance explained is passed around 60. So going down to 65 PC's seems reasonable, provided it covers 95% of variance. The proportion of variance explained by the principal component directions can quantify how much structure of the data is being captured and if we can capture 95% of the data from 65 PC's, that's much better than 100% of the data being captured from 248 variables.
+
 ```{r}
 fviz_eig(pc.n, ncp = 80)
 vars = apply(pc.n$x, 2, var)
@@ -88,9 +94,12 @@ qplot(seq_along(prop_cumsum), prop_cumsum) + xlab("PC") +
 #plot(diff(prop_cumsum))
 ```
 
-You can observe that there are two groups of variables that have similar meaning in the context of the data. The variables group on the right seem to have large positive loadings on dimension 2. On the group that is pointing left they seem to have high negative loadings on dimension 1.
-There's also the variables clustered in the center lower right half, these are pointing away from the two extreme clusters which means they are unlike those two groups, they have low positives loadings on dimension 1 and dimension 2.
-Looking at the contributions of variables it seems agreed upon in the variable loading plot that there's three different variable behaviors, those positive in dim2, negative on dim1, and all others.
+One can observe that there are two groups of variables that have similar meaning in the context of the data. The variables group on the right seem to have large positive loadings on dimension 2. On the group that is pointing left they seem to have high negative loadings on dimension 1.
+
+There's also the variables clustered in the center lower right half. These are pointing away from the two extreme clusters, which means they have low positives loadings on dimension 1 and dimension 2.
+
+Looking at the contributions of variables it seems that there's three different variable behaviors, those positive in dim2, negative on dim1, and all others.
+
 ```{r}
 fviz_pca_biplot(pc.n)
 fviz_pca_var(pc.n,
@@ -100,7 +109,8 @@ fviz_pca_var(pc.n,
 
 ```
 
-For the patients themselves it seems there are two differing groups, one highly positive on dimension 2 and one highly negative on dimension 1 and these groups have high contributions to the data. Most other patients lie in the center of the two dimensions.
+For the patients themselves it seems there are two different groups, one highly positive on dimension 2 and one highly negative on dimension 1 and these groups have high contributions to the data. Most other patients lie in the center of the two dimensions.
+
 ```{r}
 fviz_pca_ind(pc.n,
              col.ind = "contrib", # Color by the quality of representation
@@ -108,7 +118,8 @@ fviz_pca_ind(pc.n,
              repel = TRUE)
 ```
 
-So settling on 65PC's we apply our clustering methods to see which works best on our data.
+So settling on 65 PC's, we apply our clustering methods to see which works best on our data.
+
 ```{r}
 pc.65 = pc.n$x[,1:65]
 ```
@@ -116,7 +127,9 @@ pc.65 = pc.n$x[,1:65]
 ## Clustering Methods Used
 
 #### Hierarchical Clustering
-One of the methods we used for clustering was hierarchical clustering. We tried four different types of linkage, and observed that the complete and average linkage had the lowest hamming clustering errors. The classification errors are presented below, including before and after applying normalized PCA to the training data. Although, single linkage suffers from chaining, complete linkage suffers from crowding, and average linkage strikes a balance so that clusters are simulataneously relatively compact and far away, the clustering results of complete and average linkage ended up doing better than single and centroid linkages' results. Since, average linkage results in more ideal clusters, we will choose the result of average linkage hierarchical clustering, to compare against the rest of the unsupervised learning models. 
+
+One of the methods we used for clustering was hierarchical clustering. We tried four different types of linkage, and observed that the complete and average linkage had the lowest hamming clustering errors. The classification errors are presented below, including before and after applying normalized PCA to the training data. Although, single linkage suffers from chaining, complete linkage suffers from crowding, and average linkage strikes a balance so that clusters are simulataneously relatively compact and far away, the clustering results of complete and average linkage ended up doing better than single and centroid linkages' results. Since, average linkage results in more ideal clusters, we will choose the result of average linkage hierarchical clustering, to compare against the rest of the unsupervised learning models.
+
 ```{r}
 set.seed(1)
 # install.packages("clues", dependencies = T)
@@ -189,6 +202,7 @@ res <- clusterings(TRUE, clusterings(FALSE, matrix(NA, nrow=2, ncol=4), TRUE), T
 #### K-Means
 
 An unsupervised learning method we apply is K-Means to determine cluster groupings in our data. But before we can determine the final cluster's it's helpful to determine the best K. 
+
 ```{r}
 library(cluster)
 library(factoextra)
@@ -241,9 +255,9 @@ kmed_error = best_cluster(y$label, pam.res$clustering)[3]
 kmed_error.65.2 = best_cluster(y$label, pam.res.65.2$clustering)[3]
 kmed_error.65.4 = best_cluster(y$label, pam.res.65.4$clustering)[3]
 
-cat("Error:", round(kmed_error * 100, 2), "%")
-cat("Error:", round(kmed_error.65.2 * 100, 2), "%")
-cat("Error:", round(kmed_error.65.4 * 100, 2), "%")
+cat("Error of Full Data:", round(kmed_error * 100, 4), "%\n")
+cat("Error of PCA with k = 2:", round(kmed_error.65.2 * 100, 4), "%\n")
+cat("Error of PCA with k = 4:", round(kmed_error.65.4 * 100, 4), "%")
 ```
 
 
@@ -372,21 +386,17 @@ bag.data = randomForest(as.factor(label) ~ ., data, mtry = 20, importance = T)
 
 bag.data
 
-## 75% of the sample size
-smp_size <- floor(0.55 * nrow(data))
+samp <- sample(1:133, 33)
+train.knn <- data[-samp,]
+test.knn <- data[samp,]
 
-## set the seed to make your partition reproducible
-set.seed(123)
-train_ind <- sample(seq_len(nrow(data)), size = smp_size)
-
-train <- data[train_ind, ]
-test <- data[-train_ind, ]
-
-mode = randomForest(as.factor(label) ~ ., train, mtry = 20, importance = T)
+mode = randomForest(as.factor(label) ~ ., train.knn, mtry = 20, importance = T)
 mode
-rf.pred = predict(mode, test)
-tab = table(rf.pred, test$label)
-tab
-sum(diag(tab))
-1 - 34/nrow(test)
+rf.pred = predict(mode, test.knn) #!= test.knn$label
+confusionMatrix(rf.pred, test.knn$label)
+
+# sum(rf.pred != test.knn$label)/length(test.knn$label) 
+#                    sum(!knn.pred != trainY[samp])/length(trainY[samp]))
+
+
 ```
