@@ -3,6 +3,9 @@
 ## Part 1. Unsupervised Learning
 # can still assume `df` has attributes `trainX` and `trainY`
 load("data/TrainData.RData")
+# sample usage:
+#   clusterLabel1 = unsupModel1(rbind(trainX, testX))
+#   clusterLabel2 = unsupModel2(rbind(trainX, testX))
 unsupModel1 <- function(df) {
   
 }
@@ -10,6 +13,13 @@ unsupModel1 <- function(df) {
 unsupModel2 <- unsupModel1
 
 ## Part 2. Supervised Learning
+# TODO: train supModel1 with training data here
+
+# TODO: train supModel2 with training data here
+
+# sample usage:
+#   classLabel1 = supModel1(testX)
+#   classLabel2 = supModel2(testX)
 supModel1 <- function(df) {
   
 }
