@@ -23,12 +23,9 @@ knitr::opts_chunk$set(echo=TRUE, cache=T, autodep=F, cache.comments=FALSE,
 
 The data frame given to us contained 133 patients with 248 gene encodings. Given this high dimensionality it is extremely difficult to determine if there is any structure in the data. To solve this we explore several different dimension reduction methods to determine what sort of structure exists in the data. 
 
-The first method explored is Principal Component Analysis (PCA), PCA is used as a technique to emphasize variation and highllight strong patterns in data. This also makes it easy to explore and visualize. [Source](http://setosa.io/ev/principal-component-analysis/) 
+The first method explored is Principal Component Analysis (PCA), PCA is used as a technique to emphasize variation and highllight strong patterns in data. This also makes it easy to explore and visualize. 
 
 The two methods that apply PCA in R are princomp and prcomp. Princomp cannot be used on X because it uses the spectral decomposition approach, this would factorize X into a canonical form where it is represented by its eigenvalues and eigenvectors. Only diagnolizable matrices can be factored in this way, X is not a diagnolizable matrix.
-[Source1](http://www.sthda.com/english/articles/31-principal-component-methods-in-r-practical-guide/118-principal-component-analysis-in-r-prcomp-vs-princomp/)
-[Source2](https://en.wikipedia.org/wiki/Eigendecomposition_of_a_matrix)
-[Source3](https://en.wikipedia.org/wiki/Diagonalizable_matrix)
 
 Thus we apply prcomp to our data because it uses singular value decomposition, this examines the covariance and correlations between our observed patients and doesn't require X to be a diagnolizable matrix. But before this we explore it for a bit.
 
@@ -68,10 +65,7 @@ PCA: With prcomp we consider the case where X it is scaled. From our summary out
 pc.n = prcomp(X, center = T, scale = T)
 names(pc.n)
 summary(pc.n)
-#PC1 explains 11%
-#PC50 explains 90%
-#PC65 explains 95%
-#PC92 explains 99%
+#PC1 explains 11% #PC50 explains 90% #PC65 explains 95% #PC92 explains 99%
 ```
 
 To visualize the dimensions we use factoextra to create a ggplot2 visualization of our PCA objects.
@@ -378,17 +372,21 @@ bag.data = randomForest(as.factor(label) ~ ., data, mtry = 20, importance = T)
 
 bag.data
 
-samp <- sample(1:133, 33)
-train.knn <- data[-samp,]
-test.knn <- data[samp,]
+## 75% of the sample size
+smp_size <- floor(0.55 * nrow(data))
 
-mode = randomForest(as.factor(label) ~ ., train.knn, mtry = 20, importance = T)
+## set the seed to make your partition reproducible
+set.seed(123)
+train_ind <- sample(seq_len(nrow(data)), size = smp_size)
+
+train <- data[train_ind, ]
+test <- data[-train_ind, ]
+
+mode = randomForest(as.factor(label) ~ ., train, mtry = 20, importance = T)
 mode
-rf.pred = predict(mode, test.knn) #!= test.knn$label
-confusionMatrix(rf.pred, test.knn$label)
-
-sum(rf.pred != test.knn$label)/length(test.knn$label) 
-                   sum(!knn.pred != trainY[samp])/length(trainY[samp]))
-
-
+rf.pred = predict(mode, test)
+tab = table(rf.pred, test$label)
+tab
+sum(diag(tab))
+1 - 34/nrow(test)
 ```
