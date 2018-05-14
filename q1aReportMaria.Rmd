@@ -9,7 +9,8 @@ output:
     keep_tex: yes
     fig_crop: yes
 mainfont: Palatino
-fontsize: 11pt
+fontsize: 10pt
+geometry: 
 ---
 ```{r global_options, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE, cache=T, autodep=F, cache.comments=FALSE, 
@@ -75,8 +76,8 @@ summary(pc.n)
 
 To visualize the dimensions we use factoextra to create a ggplot2 visualization of our PCA objects.
 ```{r}
-install.packages("ggplot2")
-install.packages("factoextra")
+#install.packages("ggplot2")
+#install.packages("factoextra")
 library(ggplot2)
 library(factoextra)
 ```
@@ -247,8 +248,8 @@ kmed_error.65.2 = best_cluster(y$label, pam.res.65.2$clustering)[3]
 kmed_error.65.4 = best_cluster(y$label, pam.res.65.4$clustering)[3]
 
 cat("Error:", round(kmed_error * 100, 2), "%")
-cat("Error:", round(kmed_error.64.2 * 100, 2), "%")
-cat("Error:", round(kmed_error.64.4 * 100, 2), "%")
+cat("Error:", round(kmed_error.65.2 * 100, 2), "%")
+cat("Error:", round(kmed_error.65.4 * 100, 2), "%")
 ```
 
 
@@ -376,4 +377,18 @@ data = as.data.frame(cbind(y,X))
 bag.data = randomForest(as.factor(label) ~ ., data, mtry = 20, importance = T)
 
 bag.data
+
+samp <- sample(1:133, 33)
+train.knn <- data[-samp,]
+test.knn <- data[samp,]
+
+mode = randomForest(as.factor(label) ~ ., train.knn, mtry = 20, importance = T)
+mode
+rf.pred = predict(mode, test.knn) #!= test.knn$label
+confusionMatrix(rf.pred, test.knn$label)
+
+sum(rf.pred != test.knn$label)/length(test.knn$label) 
+                   sum(!knn.pred != trainY[samp])/length(trainY[samp]))
+
+
 ```
