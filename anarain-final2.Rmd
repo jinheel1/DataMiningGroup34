@@ -28,7 +28,6 @@ Cols <- function(vec){
   return(cols[as.numeric(as.factor(vec))])
 }
 
-
 # plots of scores of first 3 principal components. Even from these we can see clear differentiation of the data according to class labels (even though they were not used in any calculation)
 par(mfrow=c(1,2))
 plot(pr.out$x[,1:2], col = Cols(trainY), pch = 19, xlab = "Z1", ylab = "Z2")
@@ -41,14 +40,6 @@ plot(cumsum(pve), type = "o", ylab = "Cumulative PVE", xlab = "Principal compone
 plot(diff(pve))
 
 # There's a somewhat elbow point after the ~10th principal component, but up to 10 principal components only explains about 47% of the variance, which isn't too much.
-```
-
-```{r}
-hc.single <- hclust(dist(trainX), method = "single")
-hc.complete <- hclust(dist(trainX), method = "complete")
-
-plot(hc.single, main = "Single linkage", xlab = "", sub = "", cex = 0.5)
-plot(hc.complete, main = "Complete linkage", xlab = "", sub = "", cex = 0.5)
 ```
 
 ```{r}
