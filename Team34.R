@@ -1,23 +1,17 @@
-
-
-
-
 # Group 34: Maria Rodriguez (mar1); Anirudh Narain (anarain); Kayla Oliva (keoliva); Jinhee Lee (jinheel1)
 
-# Problem 2 (85 points)
-
-X <- read.table(file="trainX.txt",header=TRUE)
-y <- read.table(file="trainy.txt",header=TRUE)
-
 ## Part 1. Unsupervised Learning
+# can still assume `df` has attributes `trainX` and `trainY`
+load("data/TrainData.RData")
+unsupModel1 <- function(df) {
+  
+}
 
-### 1a.
-
-
-
-### 1b.
-
-
+unsupModel2 <- unsupModel1
 
 ## Part 2. Supervised Learning
+supModel1 <- function(df) {
+  
+}
 
+supModel2 <- supModel1
