@@ -32,20 +32,20 @@ clusterLabel2 = unsupModel2(rbind(trainX, testX))
 assert_that(length(clusterLabel1) == nrow(testX) + nrow(trainX))
 assert_that(length(clusterLabel2) == nrow(testX) + nrow(trainX))
 
-#classLabel1 = supModel1(testX)
-#classLabel2 = supModel2(testX)
+classLabel1 = supModel1(testX)
+classLabel2 = supModel2(testX)
 
-#assert_that(length(classLabel1) == nrow(testX))
-#assert_that(length(classLabel2) == nrow(testX))
+assert_that(length(classLabel1) == nrow(testX))
+assert_that(length(classLabel2) == nrow(testX))
 
 unsupErrorRate1 = adj.rand.index(clusterLabel1, c(trainY, testY))
 unsupErrorRate2 = adj.rand.index(clusterLabel2, c(trainY, testY))
 
-#supErrorRate1 = mean(testY != classLabel1)
-#supErrorRate2 = mean(testY != classLabel2)
+supErrorRate1 = mean(testY != classLabel1)
+supErrorRate2 = mean(testY != classLabel2)
 
 cat("PS: rand index is better if it's closer to 1. \n")
 cat(paste("Rand index for unsupervised model 1: ", as.character(round(unsupErrorRate1, 4)), '\n'))
 cat(paste("Rand index for unsupervised model 2: ", as.character(round(unsupErrorRate2, 4)), '\n'))
-#cat(paste("Error rate for supervised model 1: ", as.character(round(supErrorRate1 * 100, 4)), '%\n'))
-#cat(paste("Error rate for supervised model 2: ", as.character(round(supErrorRate2 * 100, 4)), '%\n'))
+cat(paste("Error rate for supervised model 1: ", as.character(round(supErrorRate1 * 100, 4)), '%\n'))
+cat(paste("Error rate for supervised model 2: ", as.character(round(supErrorRate2 * 100, 4)), '%\n'))
