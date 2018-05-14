@@ -23,7 +23,7 @@ unsupModel2 <- unsupModel1
 # sample usage:
 #   classLabel1 = supModel1(testX)
 #   classLabel2 = supModel2(testX)
-supModel1 <- function(df) {
+supModel1 <- function(testX) {
   
 }
 
