@@ -1,0 +1,322 @@
+---
+title: "Final Project Report from Group 34"
+author: "Maria Rodriguez (mar1); Anirudh Narain (anarain); Kayla Oliva (keoliva); Jinhee Lee (jinheel1)"
+output: 
+  pdf_document: 
+    highlight: tango
+    latex_engine: xelatex
+    df_print: kable
+    keep_tex: yes
+    fig_crop: yes
+mainfont: Palatino
+fontsize: 11pt
+---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, cache=T, autodep=F, cache.comments=FALSE, 
+                      warning=F, message=F, tidy=T, strip.white = TRUE)
+```
+# Unsupervised Learning
+
+## Is there any interesting structure present in the data? 
+
+## Clustering Methods Used
+
+#### Hierarchical Clustering
+One of the methods we used for clustering was hierarchical clustering. We tried four different types of linkage, and observed that the complete and average linkage had the lowest hamming clustering errors. The classification errors are presented below, including before and after applying normalized PCA to the training data. Although, single linkage suffers from chaining, complete linkage suffers from crowding, and average linkage strikes a balance so that clusters are simulataneously relatively compact and far away, the clustering results of complete and average linkage ended up doing better than single and centroid linkages' results. Since, average linkage results in more ideal clusters, we will choose the result of average linkage hierarchical clustering, to compare against the rest of the unsupervised learning models. 
+
+```{r, message=F, warning=F, width=10, height=8, echo=F}
+load("TrainData.RData")
+y$label.df = data.frame(y$label)
+set.seed(1)
+library(clues)
+library(combinat)
+library(dendextend)
+library(pander)
+
+compute.clustering.error <- function(true.labels, predictions) {
+  perms <- permn(c(0, 1))
+  min.error <- Inf
+  for (p in 1:length(perms)) {
+    pi <- perms[[p]]
+    error <- 0
+    for (i in 1:length(true.labels)) {
+      l <- true.labels[i]
+      l.pred <- predictions[i]
+      if (l != pi[l.pred]) {
+        error <- error + 1
+      }
+    }
+    if (error < min.error) {
+      min.error <- error
+    }
+  }
+  return(min.error)
+}
+
+methods <- c("Single", "Complete", "Average", "Centroid")
+n <- nrow(X)
+clusterings <- function(withPCA, res, makePlot=FALSE) {
+  if (withPCA) {
+    resRow <- 2
+    pr.out <- prcomp(X, center=TRUE, scale=TRUE)
+    dist.matrix <- dist(pr.out$x[,1:2])
+    title <- "After"
+  } else {
+    resRow <- 1
+    dist.matrix <- dist(X)
+    title <- "Before"
+  }
+  for (i in 1:4) {
+    method <- methods[i]
+    hc.out <- hclust(dist.matrix, method=tolower(method))
+    hc.clustering <- cutree(hc.out, 2)
+    res[resRow, i] <- compute.clustering.error(y$label, (hc.clustering)) / n
+    if (makePlot && (method == "Single" || method == "Complete")) {
+      dend <- hc.out %>% as.dendrogram %>% set("labels_cex", .35) %>% color_branches(k = 2)
+      plot(dend, main=paste(method, " Linkage", "\n(", title, " Applying PCA)", sep=""))
+    }
+  }
+  res
+}
+
+res <- clusterings(TRUE, clusterings(FALSE, matrix(NA, nrow=2, ncol=4)))
+colnames(res) <- methods
+rownames(res) <- c("Before Applying PCA", "After Applying PCA")
+pander(res)
+```
+
+```{r, echo=F}
+# c(bottom, left, top, right) 
+par(mfrow=c(2, 2), mar=c(2,5,2,0.5))
+res <- clusterings(TRUE, clusterings(FALSE, matrix(NA, nrow=2, ncol=4), TRUE), TRUE)
+```
+
+#### K-Means
+
+#### K-Medoids
+
+Another method we used for clustering was K-medoids clustering. Below, the code calculates the optimal number of clusters to be 2, clusters the data using the `pam()` function, and visualizaes the data. We used a custom function `best_cluster()` and calculated the error in the clustering to be about 10.5%. Although more computationally difficult, k-medoids clustering...
+
+```{r, echo=F}
+library(factoextra)
+library(cluster)
+# Calculating optimal number of clusters
+fviz_nbclust(X, pam, method = "silhouette") + theme_classic()
+
+
+pam.res = pam(X, k = 2)
+
+# Visualization of K-medoids clustering
+fviz_cluster(pam.res, 
+             palette = c("#00AFBB", "#FC4E07"), # color palette
+             ellipse.type = "t", # Concentration ellipse
+             repel = TRUE, # Avoid label overplotting (slow)
+             ggtheme = theme_classic()
+             )
+```
+
+```{r, echo=F}
+library(combinat)
+
+best_cluster <- function(cut1, cut2) {
+  per <- permn(1:2)
+  hamming <- numeric(length(per))
+  for (i in 1:length(per)) {
+    ts <- table(cut1, cut2)
+    ts <- ts[per[[i]],]
+    diag(ts) <- 0
+    hamming[i] <- sum(ts)
+  }
+  return(c(min(hamming), which.min(hamming)))
+}
+
+library(ClusterR)
+
+# Error proportion: the number of incorrect classification divided the number of rows
+kmed_error = best_cluster(y$label, pam.res$clustering)[1] / nrow(X)
+cat("Error:", kmed_error * 100, "%")
+```
+
+#### K-Medoids
+
+Another method we used for clustering was K-medoids clustering. Below, the code calculates the optimal number of clusters to be 2, clusters the data using the `pam()` function, and visualizaes the data. We used a custom function `best_cluster()` and calculated the error in the clustering to be about 10.5%. Although more computationally difficult, k-medoids clustering...
+
+
+```{r}
+library(factoextra)
+library(cluster)
+# Calculating optimal number of clusters
+fviz_nbclust(X, pam, method = "silhouette") + theme_classic()
+fviz_nbclust(pc.65, pam, method = "silhouette") + theme_classic()
+```
+
+```{r}
+pam.res = pam(X, k = 2)
+pam.res.65.2 = pam(pc.65, k = 2)
+pam.res.65.4 = pam(pc.65, k = 4)
+
+pam.res$clustering
+pam.res.65.2$clustering
+pam.res.65.4$clustering
+# Error proportion: the number of incorrect classification divided the number of rows
+kmed_error = best_cluster(y$label, pam.res$clustering)[3]
+cat("Error:", kmed_error * 100, "%")
+
+kmed_error.65.2 = best_cluster(y$label, pam.res.65.2$clustering)[3]
+cat("Error:", kmed_error.64.2 * 100, "%")
+
+kmed_error.65.4 = best_cluster(y$label, pam.res.65.4$clustering)[3]
+cat("Error:", kmed_error.64.4 * 100, "%")
+```
+
+
+# Supervised Learning
+
+For this problem, we have the class labels associated with the training data available to us, and we attempt to find a supervised learning approach that yields the best results (i.e. has the lowest Hamming classification error). The approaches that we chose to investigate were linear discriminant analysis (LDA), logistic regression, k-nearest neighbors (k-NN), and decision trees. For many of the methods we used, we applied the method to both the original full data, as well as a reduced dimension matrix obtained by applied PCA. The number of principle components used were 65 (as this were how many components were needed to achieve 95% proportion of variance explained [PVE]), and 12 (as this was the number of components after which we found an 'elbow point' when looking at change in PVE, even though 12 components only account for 51% of PVE).
+
+## Methods Used
+
+#### LDA
+
+Linear discriminant analysis is an effective way to determine a decision boundary between 2 classes. One assumption of LDA is that each class is normally distributed - this is something we cannot confirm for the original data, but for the principal components, they should be normalized because of the fact that we scaled and centered them. LDA was fit using the `lda()` function, and testing errors were computed using the following method: Separate the data into a test set (of 27 samples) and a training set (of 106 samples), compute the Hamming classification error after applying the fit, repeat 50 times (randomly selecting different indices to comprise the test set) and compute the mean test error. This testing method was applied to the original data, and the two forms of reduced data after applying PCA. The mean test errors obtained were: 9.1% (for full data), 8.3% (for 65 principal components), and 2.7% (for 12 principal components).
+
+```{r, message=FALSE, warning=FALSE}
+# LDA using full dataset
+require(MASS)
+trainX.mat = as.matrix(trainX)
+lda.fit <- lda(grouping = trainY, x = trainX.mat)
+lda.pred <- predict(lda.fit, trainX)
+table(lda.pred$class, trainY)
+
+# creating a matrix to store error values to compare full dataset to PCA's data
+reps = 50
+lda.test.errs <- matrix(NA, 3, reps)
+
+# the testing
+for (i in 1:reps) {
+  samp <- sample(1:length(trainY), ceiling(length(trainY)/5))
+  train.lda <- trainX[-samp,]
+  test.lda <- trainX[samp,]
+  lda.fit.1 <- lda(grouping = trainY[-samp], x = train.lda)
+  lda.fit.pred.1 <- predict(lda.fit.1, newdata = test.lda)
+  lda.test.errs[1,i] = sum(trainY[samp] != lda.fit.pred.1$class) / length(trainY[samp])
+}
+
+# LDA using PCA'd dataset (PC = 65)
+
+trainX.pc65 <- pr.out$x[,1:65]
+
+lda.fit.pc65 <- lda(grouping= trainY, x = trainX.pc65)
+lda.fit.pc65.pred <- predict(lda.fit.pc65, trainX.pc65)
+table(lda.fit.pc65.pred$class, trainY)
+
+# testing
+for (i in 1:reps) {
+  samp <- sample(1:length(trainY), ceiling(length(trainY)/5))
+  train.lda.pc65 <- trainX.pc65[-samp,]
+  test.lda.pc65 <- trainX.pc65[samp,]
+  lda.fit.pc65.1 <- lda(grouping = trainY[-samp], x = train.lda.pc65)
+  lda.fit.pc65.pred.1 <- predict(lda.fit.pc65.1, newdata = test.lda.pc65)
+  lda.test.errs[2,i] = sum(trainY[samp] != lda.fit.pc65.pred.1$class) / length(trainY[samp])
+}
+
+
+# LDA using PCA'd dataset (PC = 12)
+
+trainX.pc12 <- pr.out$x[,1:12]
+
+lda.fit.pc12 <- lda(grouping= trainY, x = trainX.pc12)
+lda.fit.pc12.pred <- predict(lda.fit.pc12, trainX.pc12)
+table(lda.fit.pc12.pred$class, trainY)
+
+# testing
+for (i in 1:reps) {
+  samp <- sample(1:length(trainY), ceiling(length(trainY)/5))
+  train.lda.pc12 <- trainX.pc12[-samp,]
+  test.lda.pc12 <- trainX.pc12[samp,]
+  lda.fit.pc12.1 <- lda(grouping = trainY[-samp], x = train.lda.pc12)
+  lda.fit.pc12.pred.1 <- predict(lda.fit.pc12.1, newdata = test.lda.pc12)
+  lda.test.errs[3,i] = sum(trainY[samp] != lda.fit.pc12.pred.1$class) / length(trainY[samp])
+}
+
+rowMeans(lda.test.errs)
+```
+
+#### Logistic Regression
+
+Logistic regression allows us to fit a model that returns the probability of belonging to each class. An advantage that logistic regression has over LDA is that it assumes nothing about the normality of the data in each class. Logistic regression was fit using `glm()`, with `class = binomial`, to each of a) the full data, b) reduced dimension (PC = 65) data, and c) reduced dimension (PC = 12) data. Again, Hamming classification errors were computed by averaging the test error over 50 repetitions, like we did for LDA. The results obtained were: 38.8% (for full data), 9.8% (for 65 principal components), and 4.3% (for 12 principal components)
+
+```{r, message=FALSE, warning=FALSE}
+# logistic regression using full dataset
+alldata <- cbind(trainX, trainY)
+log.fit <- glm(trainY ~ ., data = alldata, family = binomial)
+log.probs <- predict(log.fit, type = "response")
+log.pred <- rep(0, 133)
+log.pred[log.probs > 0.5] = 1
+table(log.pred, trainY)
+
+# creating a matrix to store error values to compare full dataset to PCA's data
+reps = 50
+log.test.errs <- matrix(NA, 3, reps)
+
+# the testing
+for (i in 1:reps) {
+  samp <- sample(1:length(trainY), ceiling(length(trainY)/5))
+  train.log <- alldata[-samp,]
+  test.log <- alldata[samp,]
+  log.fit.1 <- glm(trainY~., data = train.log, family = binomial)
+  log.probs.1 <- predict(log.fit.1, newdata = test.log, type = "response")
+  log.pred.1 <- rep(0, length(samp))
+  log.pred.1[log.probs.1 > 0.5] = 1
+  log.test.errs[1,i] = sum(log.pred.1 != test.log$trainY) / length(samp)
+}
+
+# logistic regression using PCA'd dataset (PC = 65)
+
+alldata.pc65 <- cbind(trainX.pc65, trainY.df)
+log.fit.pc65 <- glm(trainY ~ ., data = alldata.pc65, family = binomial)
+log.probs.pc65 <- predict(log.fit.pc65, type = "response")
+log.pred.pc65 <- rep(0, 133)
+log.pred.pc65[log.probs.pc65 > 0.5] = 1
+table(log.pred.pc65, trainY)
+
+# testing
+for (i in 1:reps) {
+  samp <- sample(1:length(trainY), ceiling(length(trainY)/5))
+  train.log.pc65 <- alldata.pc65[-samp,]
+  test.log.pc65 <- alldata.pc65[samp,]
+  log.fit.1.pc65 <- glm(trainY~., data = train.log.pc65, family = binomial)
+  log.probs.1.pc65 <- predict(log.fit.1.pc65, newdata = test.log.pc65, type = "response")
+  log.pred.1.pc65 <- rep(0, length(samp))
+  log.pred.1.pc65[log.probs.1.pc65 > 0.5] = 1
+  log.test.errs[2,i] = sum(log.pred.1.pc65 != test.log.pc65$trainY) / length(samp)
+}
+
+
+# logistic regression using PCA'd dataset (PC = 65)
+
+alldata.pc12 <- cbind(trainX.pc12, trainY.df)
+log.fit.pc12 <- glm(trainY ~ ., data = alldata.pc12, family = binomial)
+log.probs.pc12 <- predict(log.fit.pc12, type = "response")
+log.pred.pc12 <- rep(0, 133)
+log.pred.pc12[log.probs.pc12 > 0.5] = 1
+table(log.pred.pc12, trainY)
+
+# testing
+for (i in 1:reps) {
+  samp <- sample(1:length(trainY), ceiling(length(trainY)/5))
+  train.log.pc12 <- alldata.pc12[-samp,]
+  test.log.pc12 <- alldata.pc12[samp,]
+  log.fit.1.pc12 <- glm(trainY~., data = train.log.pc12, family = binomial)
+  log.probs.1.pc12 <- predict(log.fit.1.pc12, newdata = test.log.pc12, type = "response")
+  log.pred.1.pc12 <- rep(0, length(samp))
+  log.pred.1.pc12[log.probs.1.pc12 > 0.5] = 1
+  log.test.errs[3,i] = sum(log.pred.1.pc12 != test.log.pc12$trainY) / length(samp)
+}
+
+rowMeans(log.test.errs)
+```
+
+#### kNN
+
+#### Decision Trees
