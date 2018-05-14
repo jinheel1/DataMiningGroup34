@@ -28,56 +28,140 @@ plot(diff(pve))
 # which isn't too much. But adding more components doesn't add much to PVE.
 
 
-# LDA
+# LDA using full dataset
+require(MASS)
 trainX.mat = as.matrix(trainX)
-
-# Fitting LDA to the data
 lda.fit <- lda(grouping = trainY, x = trainX.mat)
-
-# prior prob of group 0: 0.8346; prior prob of group 1: 0.1654
-plot(lda.fit)
-
 lda.pred <- predict(lda.fit, trainX)
 table(lda.pred$class, trainY)
 
+# creating a matrix to store error values to compare full dataset to PCA's data
+reps = 50
+lda.test.errs <- matrix(NA, 3, reps)
+
+# the testing
+for (i in 1:reps) {
+  samp <- sample(1:length(trainY), ceiling(length(trainY)/5))
+  train.lda <- trainX[-samp,]
+  test.lda <- trainX[samp,]
+  lda.fit.1 <- lda(grouping = trainY[-samp], x = train.lda)
+  lda.fit.pred.1 <- predict(lda.fit.1, newdata = test.lda)
+  lda.test.errs[1,i] = sum(trainY[samp] != lda.fit.pred.1$class) / length(trainY[samp])
+}
+
+# LDA using PCA'd dataset (PC = 65)
+
+trainX.pc65 <- pr.out$x[,1:65]
+
+lda.fit.pc65 <- lda(grouping= trainY, x = trainX.pc65)
+lda.fit.pc65.pred <- predict(lda.fit.pc65, trainX.pc65)
+table(lda.fit.pc65.pred$class, trainY)
 
 # testing
-set.seed(1)
-samp <- sample(1:133, 33)
-train.lda <- trainX.mat[-samp,]
-test.lda <- trainX[samp,]
-lda.fit.1 <- lda(grouping = trainY[-samp], x = train.lda)
-
-lda.predzz <- predict(lda.fit.1, newdata = test.lda)
-table(lda.predzz$class, trainY[samp])
-
-# Misclassification error:
-sum(lda.predzz$class != trainY[samp])/length(trainY[samp])
+for (i in 1:reps) {
+  samp <- sample(1:length(trainY), ceiling(length(trainY)/5))
+  train.lda.pc65 <- trainX.pc65[-samp,]
+  test.lda.pc65 <- trainX.pc65[samp,]
+  lda.fit.pc65.1 <- lda(grouping = trainY[-samp], x = train.lda.pc65)
+  lda.fit.pc65.pred.1 <- predict(lda.fit.pc65.1, newdata = test.lda.pc65)
+  lda.test.errs[2,i] = sum(trainY[samp] != lda.fit.pc65.pred.1$class) / length(trainY[samp])
+}
 
 
-# logistic regression
+# LDA using PCA'd dataset (PC = 12)
 
+trainX.pc12 <- pr.out$x[,1:12]
+
+lda.fit.pc12 <- lda(grouping= trainY, x = trainX.pc12)
+lda.fit.pc12.pred <- predict(lda.fit.pc12, trainX.pc12)
+table(lda.fit.pc12.pred$class, trainY)
+
+# testing
+for (i in 1:reps) {
+  samp <- sample(1:length(trainY), ceiling(length(trainY)/5))
+  train.lda.pc12 <- trainX.pc12[-samp,]
+  test.lda.pc12 <- trainX.pc12[samp,]
+  lda.fit.pc12.1 <- lda(grouping = trainY[-samp], x = train.lda.pc12)
+  lda.fit.pc12.pred.1 <- predict(lda.fit.pc12.1, newdata = test.lda.pc12)
+  lda.test.errs[3,i] = sum(trainY[samp] != lda.fit.pc12.pred.1$class) / length(trainY[samp])
+}
+
+# This command gives the average test error for all three data (original dataset, 
+# 65 PC's, and 12 PC's, respectively)
+rowMeans(lda.test.errs)
+
+
+# logistic regression using full dataset
 alldata <- cbind(trainX, trainY)
 log.fit <- glm(trainY ~ ., data = alldata, family = binomial)
 log.probs <- predict(log.fit, type = "response")
 log.pred <- rep(0, 133)
 log.pred[log.probs > 0.5] = 1
-
 table(log.pred, trainY)
 
-# testing
-set.seed(1)
-samp <- sample(1:133, 33)
-train.alldata <- alldata[-samp,]
-test.alldata <- alldata[samp,]
-log.fit.1 <- glm(trainY~ ., data= train.alldata, family=binomial)
-log.prob.1 <- predict(log.fit.1, newdata = test.alldata, type = "response")
-log.predzz <- rep(0,33)
-log.predzz[log.prob.1 > 0.5] = 1
-table(log.predzz, test.alldata$trainY)
+# creating a matrix to store error values to compare full dataset to PCA's data
+reps = 50
+log.test.errs <- matrix(NA, 3, reps)
 
-# Misclassification error:
-sum(log.predzz != test.alldata$trainY)/length(test.alldata$trainY)
+# the testing
+for (i in 1:reps) {
+  samp <- sample(1:length(trainY), ceiling(length(trainY)/5))
+  train.log <- alldata[-samp,]
+  test.log <- alldata[samp,]
+  log.fit.1 <- glm(trainY~., data = train.log, family = binomial)
+  log.probs.1 <- predict(log.fit.1, newdata = test.log, type = "response")
+  log.pred.1 <- rep(0, length(samp))
+  log.pred.1[log.probs.1 > 0.5] = 1
+  log.test.errs[1,i] = sum(log.pred.1 != test.log$trainY) / length(samp)
+}
+
+# logistic regression using PCA'd dataset (PC = 65)
+
+alldata.pc65 <- cbind(trainX.pc65, trainY.df)
+log.fit.pc65 <- glm(trainY ~ ., data = alldata.pc65, family = binomial)
+log.probs.pc65 <- predict(log.fit.pc65, type = "response")
+log.pred.pc65 <- rep(0, 133)
+log.pred.pc65[log.probs.pc65 > 0.5] = 1
+table(log.pred.pc65, trainY)
+
+# testing
+for (i in 1:reps) {
+  samp <- sample(1:length(trainY), ceiling(length(trainY)/5))
+  train.log.pc65 <- alldata.pc65[-samp,]
+  test.log.pc65 <- alldata.pc65[samp,]
+  log.fit.1.pc65 <- glm(trainY~., data = train.log.pc65, family = binomial)
+  log.probs.1.pc65 <- predict(log.fit.1.pc65, newdata = test.log.pc65, type = "response")
+  log.pred.1.pc65 <- rep(0, length(samp))
+  log.pred.1.pc65[log.probs.1.pc65 > 0.5] = 1
+  log.test.errs[2,i] = sum(log.pred.1.pc65 != test.log.pc65$trainY) / length(samp)
+}
+
+
+# logistic regression using PCA'd dataset (PC = 65)
+
+alldata.pc12 <- cbind(trainX.pc12, trainY.df)
+log.fit.pc12 <- glm(trainY ~ ., data = alldata.pc12, family = binomial)
+log.probs.pc12 <- predict(log.fit.pc12, type = "response")
+log.pred.pc12 <- rep(0, 133)
+log.pred.pc12[log.probs.pc12 > 0.5] = 1
+table(log.pred.pc12, trainY)
+
+# testing
+for (i in 1:reps) {
+  samp <- sample(1:length(trainY), ceiling(length(trainY)/5))
+  train.log.pc12 <- alldata.pc12[-samp,]
+  test.log.pc12 <- alldata.pc12[samp,]
+  log.fit.1.pc12 <- glm(trainY~., data = train.log.pc12, family = binomial)
+  log.probs.1.pc12 <- predict(log.fit.1.pc12, newdata = test.log.pc12, type = "response")
+  log.pred.1.pc12 <- rep(0, length(samp))
+  log.pred.1.pc12[log.probs.1.pc12 > 0.5] = 1
+  log.test.errs[3,i] = sum(log.pred.1.pc12 != test.log.pc12$trainY) / length(samp)
+}
+
+# This command gives the average test error for all three data (original dataset, 
+# 65 PC's, and 12 PC's, respectively)
+rowMeans(log.test.errs)
+
 
 # K-nn regression
 library(class)
