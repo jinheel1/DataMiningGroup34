@@ -418,6 +418,9 @@ rowMeans(log.test.errs)
 ```
 
 ### kNN
+
+
+
 ```{r}
 # K-nn regression
 library(class)
@@ -437,6 +440,8 @@ min(sum(knn.pred != trainY[samp])/length(trainY[samp]),
 
 ### Trees
 
+
+
 ```{r}
 library(randomForest)
 data = as.data.frame(cbind(y,X))
@@ -444,17 +449,22 @@ bag.data = randomForest(as.factor(label) ~ ., data, mtry = 20, importance = T)
 
 bag.data
 
-samp <- sample(1:133, 33)
-train.knn <- data[-samp,]
-test.knn <- data[samp,]
+## 75% of the sample size
+smp_size <- floor(0.55 * nrow(data))
 
-mode = randomForest(as.factor(label) ~ ., train.knn, mtry = 20, importance = T)
+## set the seed to make your partition reproducible
+set.seed(123)
+train_ind <- sample(seq_len(nrow(data)), size = smp_size)
+
+train <- data[train_ind, ]
+test <- data[-train_ind, ]
+
+mode = randomForest(as.factor(label) ~ ., train, mtry = 20, importance = T)
 mode
-rf.pred = predict(mode, test.knn) #!= test.knn$label
-table(rf.pred, test.knn$label)
-
-# sum(rf.pred != test.knn$label)/length(test.knn$label) 
-#                    sum(!knn.pred != trainY[samp])/length(trainY[samp]))
-
+rf.pred = predict(mode, test)
+tab = table(rf.pred, test$label)
+tab
+sum(diag(tab))
+1 - 34/nrow(test)
 
 ```
