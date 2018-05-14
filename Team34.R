@@ -6,8 +6,11 @@ load("data/TrainData.RData")
 # sample usage:
 #   clusterLabel1 = unsupModel1(rbind(trainX, testX))
 #   clusterLabel2 = unsupModel2(rbind(trainX, testX))
-unsupModel1 <- function(df) {
-  
+unsupModel1 <- function(X) {
+  pc.n = prcomp(X, center = T, scale = T)
+  pc.65 = pc.n$x[,1:65]
+  kmeans.results.pca = kmeans(pc.65, centers = 2, nstart = 25, iter.max = 50, algorithm = "Lloyd")
+  return(kmeans.results.pca$cluster)
 }
 
 unsupModel2 <- unsupModel1
