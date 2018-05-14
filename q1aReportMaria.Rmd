@@ -9,7 +9,8 @@ output:
     keep_tex: yes
     fig_crop: yes
 mainfont: Palatino
-fontsize: 11pt
+fontsize: 10pt
+geometry: 
 ---
 ```{r global_options, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE, cache=T, autodep=F, cache.comments=FALSE, 
@@ -75,8 +76,8 @@ summary(pc.n)
 
 To visualize the dimensions we use factoextra to create a ggplot2 visualization of our PCA objects.
 ```{r}
-install.packages("ggplot2")
-install.packages("factoextra")
+#install.packages("ggplot2")
+#install.packages("factoextra")
 library(ggplot2)
 library(factoextra)
 ```
@@ -191,6 +192,203 @@ par(mfrow=c(2, 2), mar=c(2,5,2,0.5))
 res <- clusterings(TRUE, clusterings(FALSE, matrix(NA, nrow=2, ncol=4), TRUE), TRUE)
 ```
 
+#### K-Means
+
+An unsupervised learning method we apply is K-Means to determine cluster groupings in our data. But before we can determine the final cluster's it's helpful to determine the best K. 
+```{r}
+library(cluster)
+library(factoextra)
+set.seed(1)
+#It seems K = 2 is the best
+fviz_nbclust(X, kmeans, method = "silhouette") + theme_classic()
+fviz_nbclust(pc.65, kmeans, method = "silhouette") + theme_classic()
+
+kmeans.results = kmeans(X, centers = 2, nstart = 25, iter.max = 20, algorithm = "Lloyd")
+kmeans.results.pca = kmeans(pc.65, centers = 2, nstart = 25, iter.max = 20, algorithm = "Lloyd")
+
+best_cluster <- function(cut1, cut2) {
+  per <- permn(1:2)
+  hamming <- numeric(length(per))
+  for (i in 1:length(per)) {
+    ts <- table(cut1, cut2)
+    ts <- ts[per[[i]],]
+    diag(ts) <- 0
+    hamming[i] <- sum(ts)
+  }
+  return(c(min(hamming), which.min(hamming), min(hamming)/length(cut2)))
+}
+num_patients = nrow(X)
+err_calc = best_cluster(kmeans.results$cluster, y$label)
+err_calc[3] #Error
+err_calc.pca = best_cluster(kmeans.results.pca$cluster, y$label)
+err_calc.pca[3] #Error
+```
+
+#### K-Medoids
+
+Another method we used for clustering was K-medoids clustering. Below, the code calculates the optimal number of clusters to be 2, clusters the data using the `pam()` function, and visualizaes the data. We used a custom function `best_cluster()` and calculated the error in the clustering to be about 10.5%. Although more computationally difficult, k-medoids clustering...
 
 
-#XXXLater on when exploring LDA check the normality assumption of the data
+```{r}
+library(factoextra)
+library(cluster)
+# Calculating optimal number of clusters
+fviz_nbclust(X, pam, method = "silhouette") + theme_classic()
+fviz_nbclust(pc.65, pam, method = "silhouette") + theme_classic()
+```
+
+```{r}
+pam.res = pam(X, k = 2)
+pam.res.65.2 = pam(pc.65, k = 2)
+pam.res.65.4 = pam(pc.65, k = 4)
+
+# Error proportion: the number of incorrect classification divided the number of rows
+kmed_error = best_cluster(y$label, pam.res$clustering)[3]
+kmed_error.65.2 = best_cluster(y$label, pam.res.65.2$clustering)[3]
+kmed_error.65.4 = best_cluster(y$label, pam.res.65.4$clustering)[3]
+
+cat("Error:", round(kmed_error * 100, 2), "%")
+cat("Error:", round(kmed_error.65.2 * 100, 2), "%")
+cat("Error:", round(kmed_error.65.4 * 100, 2), "%")
+```
+
+
+# Supervised Learning
+
+## Methods Used
+
+### LDA
+
+```{r}
+# Linear Discriminant Analysis
+load("TrainData.Rdata")
+trainY.df = data.frame(trainY)
+
+require(MASS)
+
+n = nrow(trainX)
+p = ncol(trainX)
+
+a = lda(trainX, trainY)
+at = a$scaling
+
+trainX.mat = as.matrix(trainX)
+
+z = trainX.mat %*% at
+
+plot( z, col = trainY+1)
+```
+
+```{r}
+# Fitting LDA to the data
+lda.fit <- lda(grouping = trainY, x = trainX.mat)
+
+# prior prob of group 0: 0.8346; prior prob of group 1: 0.1654
+plot(lda.fit)
+
+lda.pred <- predict(lda.fit, trainX)
+table(lda.pred$class, trainY)
+
+
+# testing
+set.seed(1)
+samp <- sample(1:133, 33)
+train.lda <- trainX.mat[-samp,]
+test.lda <- trainX[samp,]
+lda.fit.1 <- lda(grouping = trainY[-samp], x = train.lda)
+
+lda.predzz <- predict(lda.fit.1, newdata = test.lda)
+table(lda.predzz$class, trainY[samp])
+
+# Misclassification error:
+min(sum(lda.predzz$class != trainY[samp])/length(trainY[samp]), 
+                   sum(!lda.predzz$class != trainY[samp])/length(trainY[samp]))
+
+library(combinat)
+
+best_cluster <- function(cut1, cut2) {
+  per <- permn(1:2)
+  hamming <- numeric(length(per))
+  for (i in 1:length(per)) {
+    ts <- table(cut1, cut2)
+    ts <- ts[per[[i]],]
+    diag(ts) <- 0
+    hamming[i] <- sum(ts)
+  }
+  return(c(min(hamming), which.min(hamming)))
+}
+
+best_cluster(lda.pred$class, trainY)
+```
+
+###Logistic Regression
+
+
+```{r}
+# logistic regression
+
+alldata <- cbind(trainX, trainY)
+log.fit <- glm(trainY ~ ., data = alldata, family = binomial)
+log.probs <- predict(log.fit, type = "response")
+log.pred <- rep(0, 133)
+log.pred[log.probs > 0.5] = 1
+
+table(log.pred, trainY)
+
+# testing
+set.seed(1)
+samp <- sample(1:133, 33)
+train.alldata <- alldata[-samp,]
+test.alldata <- alldata[samp,]
+log.fit.1 <- glm(trainY~ ., data= train.alldata, family=binomial)
+log.prob.1 <- predict(log.fit.1, newdata = test.alldata, type = "response")
+log.predzz <- rep(0,33)
+log.predzz[log.prob.1 > 0.5] = 1
+table(log.predzz, test.alldata$trainY)
+
+# Misclassification error:
+min(sum(log.predzz != test.alldata$trainY)/length(test.alldata$trainY), 
+                   sum(!log.predzz != test.alldata$trainY)/length(test.alldata$trainY))
+```
+
+### kNN
+```{r}
+# K-nn regression
+library(class)
+samp <- sample(1:133, 33)
+train.knn <- trainX[-samp,]
+test.knn <- trainX[samp,]
+
+#tune k
+knn.pred <- knn(train.knn, test.knn, trainY[-samp], k = 7)
+
+table(knn.pred, trainY[samp])
+
+min(sum(knn.pred != trainY[samp])/length(trainY[samp]), 
+                   sum(!knn.pred != trainY[samp])/length(trainY[samp]))
+```
+
+
+### Trees
+
+```{r}
+library(randomForest)
+data = as.data.frame(cbind(y,X))
+bag.data = randomForest(as.factor(label) ~ ., data, mtry = 20, importance = T)
+
+bag.data
+
+samp <- sample(1:133, 33)
+train.knn <- data[-samp,]
+test.knn <- data[samp,]
+
+mode = randomForest(as.factor(label) ~ ., train.knn, mtry = 20, importance = T)
+mode
+rf.pred = predict(mode, test.knn) #!= test.knn$label
+confusionMatrix(rf.pred, test.knn$label)
+
+sum(rf.pred != test.knn$label)/length(test.knn$label) 
+                   sum(!knn.pred != trainY[samp])/length(trainY[samp]))
+
+
+```
