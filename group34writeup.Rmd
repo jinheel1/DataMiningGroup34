@@ -1,16 +1,18 @@
 ---
 title: "Final Project Report from Group 34"
-author: "Maria Rodriguez (mar1); Anirudh Narain (anarain); Kayla Oliva (keoliva); Jinhee Lee (jinheel1)"
-output: 
-  pdf_document: 
-    highlight: tango
-    latex_engine: xelatex
+author: Maria Rodriguez (mar1); Anirudh Narain (anarain); Kayla Oliva (keoliva); Jinhee
+  Lee (jinheel1)
+geometry: margin=0.5in
+output:
+  pdf_document:
     df_print: kable
-    keep_tex: yes
     fig_crop: yes
+    highlight: tango
+    keep_tex: yes
+    latex_engine: xelatex
+  html_document: default
 mainfont: Palatino
 fontsize: 10pt
-geometry: margin=0.5in
 ---
 ```{r global_options, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, cache=T, autodep=F, cache.comments=FALSE, 
@@ -419,7 +421,7 @@ rowMeans(log.test.errs)
 
 ### kNN
 
-
+With K-Nearest Neighbors, we did 5-fold cross validation in order to tuner our $k$ parameter. The parameter with the minimum hamming classification error was $k=12$. The error obtained was .0303.
 
 ```{r}
 # K-nn regression
@@ -440,12 +442,12 @@ min(sum(knn.pred != trainY[samp])/length(trainY[samp]),
 
 ### Trees
 
-
+We did randomForest and used 5-fold cross validation to get an error of .0167.
 
 ```{r}
 library(randomForest)
 data = as.data.frame(cbind(y,X))
-bag.data = randomForest(as.factor(label) ~ ., data, mtry = 20, importance = T)
+bag.data = randomForest(as.factor(label) ~ ., data, mtry = 50, importance = T)
 
 bag.data
 
@@ -459,12 +461,12 @@ train_ind <- sample(seq_len(nrow(data)), size = smp_size)
 train <- data[train_ind, ]
 test <- data[-train_ind, ]
 
-mode = randomForest(as.factor(label) ~ ., train, mtry = 20, importance = T)
+mode = randomForest(as.factor(label) ~ ., train, mtry = 50, importance = T)
 mode
 rf.pred = predict(mode, test)
 tab = table(rf.pred, test$label)
 tab
 sum(diag(tab))
-1 - 34/nrow(test)
+1 - 59/nrow(test)
 
 ```
